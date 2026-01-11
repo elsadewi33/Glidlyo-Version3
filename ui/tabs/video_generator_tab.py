@@ -377,7 +377,9 @@ class GoogleFlowGeneratorPanel(wx.Panel):
         
         main_sizer.Add(path_sizer, 0, wx.EXPAND | wx.ALL, 5)
         
-        # Google Flow Credentials - FIXED: Use Panel instead of StaticBoxSizer.Show()
+        # Google Flow Credentials - FIXED: wxAssertionError prevention
+        # Before: Calling .Show() on StaticBoxSizer caused wxAssertionError
+        # Solution: Use wx.Panel container that can be properly shown/hidden
         self.cred_panel = wx.Panel(self)
         cred_sizer = wx.BoxSizer(wx.VERTICAL)
         

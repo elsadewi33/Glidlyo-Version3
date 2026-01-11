@@ -231,12 +231,20 @@ class YouTubeLivestreamPanel(wx.Panel):
         # Run authentication in background thread
         def authenticate():
             try:
-                # Lazy import Google API libraries
-                from google.oauth2.credentials import Credentials
-                from google_auth_oauthlib.flow import InstalledAppFlow
-                from google.auth.transport.requests import Request
-                from googleapiclient.discovery import build
-                import pickle
+                # Lazy import Google API libraries to avoid import errors when not used
+                # If libraries not installed, provide clear error message
+                try:
+                    from google.oauth2.credentials import Credentials
+                    from google_auth_oauthlib.flow import InstalledAppFlow
+                    from google.auth.transport.requests import Request
+                    from googleapiclient.discovery import build
+                    import pickle
+                except ImportError as e:
+                    self.log(f"❌ Google API libraries not installed: {str(e)}")
+                    self.log("💡 Install with: pip install google-api-python-client google-auth-oauthlib")
+                    wx.CallAfter(messagebox.showerror, "Missing Libraries", 
+                                "Google API libraries not installed.\nPlease install:\npip install google-api-python-client google-auth-oauthlib")
+                    return
                 
                 SCOPES = ['https://www.googleapis.com/auth/youtube.force-ssl']
                 

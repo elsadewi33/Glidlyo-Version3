@@ -1,4 +1,15 @@
-"""Google Flow video generation runner (placeholder implementation)."""
+"""Google Flow video generation runner (placeholder implementation).
+
+IMPORTANT: This is a PLACEHOLDER implementation. The generate_scene() method
+currently returns None and does not actually generate videos. Full Google Flow
+integration requires implementing the actual UI interactions for video generation.
+
+To complete this implementation:
+1. Identify Google Flow UI selectors for prompt input
+2. Add logic to submit generation requests
+3. Implement waiting for generation completion
+4. Add download logic for generated videos
+"""
 import os
 import time
 from typing import Optional
@@ -9,7 +20,13 @@ from core.logger import Logger
 
 
 class GoogleFlowRunner(BaseRunner):
-    """Google Flow runner - placeholder implementation."""
+    """Google Flow runner - PLACEHOLDER implementation.
+    
+    WARNING: generate_scene() currently returns None. This is a skeleton
+    implementation that handles authentication and navigation but does not
+    yet implement actual video generation. Use Default or Flow runners
+    for production video generation.
+    """
     
     def __init__(self, config: GenerationConfig, logger: Logger,
                  username: str, password: str, timeout: int):
