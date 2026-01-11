@@ -122,3 +122,97 @@ class YoutubeUploader:
                 print(f"⚠️ Thumbnail Upload Failed: {e}")
 
         return video_id
+    
+    def create_broadcast(self, title, description, privacy_status="public", scheduled_start_time=None):
+        """
+        Create a YouTube livestream broadcast.
+        
+        Args:
+            title: Broadcast title
+            description: Broadcast description
+            privacy_status: Privacy setting (public, private, unlisted)
+            scheduled_start_time: ISO 8601 format timestamp (e.g., "2026-01-11T21:00:00Z")
+        
+        Returns:
+            Dictionary with broadcast_id, stream_id, and stream_url
+        """
+        from datetime import datetime, timezone, timedelta
+        
+        # If no scheduled_start_time provided, default to 5 minutes from now
+        if not scheduled_start_time:
+            now_utc = datetime.now(timezone.utc)
+            scheduled_dt = now_utc + timedelta(minutes=5)
+            scheduled_start_time = scheduled_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+        
+        print(f"📡 Creating livestream broadcast: {title}")
+        print(f"   🕒 Scheduled Start: {scheduled_start_time}")
+        print(f"   🔒 Privacy: {privacy_status}")
+        
+        # Step 1: Create the broadcast
+        broadcast_body = {
+            'snippet': {
+                'title': title[:100],
+                'description': description[:5000],
+                'scheduledStartTime': scheduled_start_time
+            },
+            'status': {
+                'privacyStatus': privacy_status,
+                'selfDeclaredMadeForKids': False
+            },
+            'contentDetails': {
+                'enableAutoStart': True,
+                'enableAutoStop': True
+            }
+        }
+        
+        broadcast_response = self.youtube.liveBroadcasts().insert(
+            part='snippet,status,contentDetails',
+            body=broadcast_body
+        ).execute()
+        
+        broadcast_id = broadcast_response['id']
+        print(f"✅ Broadcast created. ID: {broadcast_id}")
+        
+        # Step 2: Create the livestream
+        stream_body = {
+            'snippet': {
+                'title': f"{title} - Stream"
+            },
+            'cdn': {
+                'frameRate': '30fps',
+                'ingestionType': 'rtmp',
+                'resolution': '1080p'
+            }
+        }
+        
+        stream_response = self.youtube.liveStreams().insert(
+            part='snippet,cdn',
+            body=stream_body
+        ).execute()
+        
+        stream_id = stream_response['id']
+        stream_url = stream_response['cdn']['ingestionInfo']['ingestionAddress']
+        stream_key = stream_response['cdn']['ingestionInfo']['streamName']
+        
+        print(f"✅ Stream created. ID: {stream_id}")
+        print(f"   📺 Stream URL: {stream_url}")
+        
+        # Step 3: Bind the stream to the broadcast
+        self.youtube.liveBroadcasts().bind(
+            part='id,contentDetails',
+            id=broadcast_id,
+            streamId=stream_id
+        ).execute()
+        
+        print(f"✅ Broadcast bound to stream")
+        
+        return {
+            'broadcast_id': broadcast_id,
+            'stream_id': stream_id,
+            'stream_url': stream_url,
+            'stream_key': stream_key,
+            'scheduled_start_time': scheduled_start_time
+        }
+
+
+        return video_id

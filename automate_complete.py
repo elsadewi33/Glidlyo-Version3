@@ -99,6 +99,11 @@ class NexabotApp(wx.Frame):
         self.google_flow_password = SimpleVar("") 
         # Subcategory for Video Generator 
         self.video_gen_subcategory = SimpleVar("Default")  # Default | Flow Video Generator | Google Flow 
+        # Livestream settings
+        self.livestream_title = SimpleVar("")
+        self.livestream_description = SimpleVar("")
+        self.livestream_privacy = SimpleVar("public")
+        self.livestream_delay_minutes = SimpleVar(5)
         # YouTube Channel mapping per mode 
         self.youtube_channels = { 
             "Shorts": {"name": "", "credentials": ""}, 
@@ -220,6 +225,41 @@ class NexabotApp(wx.Frame):
         google_flow_sizer.Show(False) 
         self.main_sizer.Add(google_flow_sizer, 0, wx.EXPAND | wx.ALL, 5) 
         self.google_flow_sizer = google_flow_sizer 
+        # ---- Livestream Settings ---- 
+        livestream_box = wx.StaticBox(self.scrollable_panel, label="YouTube Livestream") 
+        livestream_sizer = wx.StaticBoxSizer(livestream_box, wx.VERTICAL) 
+        livestream_grid = wx.FlexGridSizer(rows=4, cols=2, vgap=5, hgap=10) 
+        
+        livestream_grid.Add(wx.StaticText(livestream_box, label="Title:"), 0, wx.ALIGN_CENTER_VERTICAL) 
+        self.livestream_title_ctrl = wx.TextCtrl(livestream_box) 
+        self.livestream_title_ctrl.Bind(wx.EVT_TEXT, lambda e: self.livestream_title.set(self.livestream_title_ctrl.GetValue())) 
+        livestream_grid.Add(self.livestream_title_ctrl, 1, wx.EXPAND) 
+        
+        livestream_grid.Add(wx.StaticText(livestream_box, label="Description:"), 0, wx.ALIGN_CENTER_VERTICAL) 
+        self.livestream_desc_ctrl = wx.TextCtrl(livestream_box, style=wx.TE_MULTILINE, size=(-1, 60)) 
+        self.livestream_desc_ctrl.Bind(wx.EVT_TEXT, lambda e: self.livestream_description.set(self.livestream_desc_ctrl.GetValue())) 
+        livestream_grid.Add(self.livestream_desc_ctrl, 1, wx.EXPAND) 
+        
+        livestream_grid.Add(wx.StaticText(livestream_box, label="Privacy:"), 0, wx.ALIGN_CENTER_VERTICAL) 
+        self.livestream_privacy_combo = wx.ComboBox(livestream_box, choices=["public", "private", "unlisted"], style=wx.CB_READONLY) 
+        self.livestream_privacy_combo.SetValue(self.livestream_privacy.get()) 
+        self.livestream_privacy_combo.Bind(wx.EVT_COMBOBOX, lambda e: self.livestream_privacy.set(self.livestream_privacy_combo.GetValue())) 
+        livestream_grid.Add(self.livestream_privacy_combo, 1, wx.EXPAND) 
+        
+        livestream_grid.Add(wx.StaticText(livestream_box, label="Start Delay (min):"), 0, wx.ALIGN_CENTER_VERTICAL) 
+        self.livestream_delay_spin = wx.SpinCtrl(livestream_box, min=1, max=1440, initial=self.livestream_delay_minutes.get()) 
+        self.livestream_delay_spin.Bind(wx.EVT_SPINCTRL, lambda e: self.livestream_delay_minutes.set(self.livestream_delay_spin.GetValue())) 
+        livestream_grid.Add(self.livestream_delay_spin, 1, wx.EXPAND) 
+        
+        livestream_grid.AddGrowableCol(1, 1) 
+        livestream_sizer.Add(livestream_grid, 0, wx.EXPAND | wx.ALL, 5) 
+        
+        # Create Broadcast button 
+        btn_create_broadcast = wx.Button(livestream_box, label="📡 Create Livestream Broadcast") 
+        btn_create_broadcast.Bind(wx.EVT_BUTTON, lambda e: self.create_livestream_broadcast()) 
+        livestream_sizer.Add(btn_create_broadcast, 0, wx.EXPAND | wx.ALL, 5) 
+        
+        self.main_sizer.Add(livestream_sizer, 0, wx.EXPAND | wx.ALL, 5) 
         # ---- Activity Log ---- 
         self.main_sizer.Add(wx.StaticText(self.scrollable_panel, label="Activity Log:"), 0, wx.TOP, 10) 
         self.log_widget = wx.TextCtrl(self.scrollable_panel, style=wx.TE_MULTILINE | wx.TE_READONLY) 
@@ -329,6 +369,68 @@ class NexabotApp(wx.Frame):
         if path: 
             self.seed_image_path.set(os.path.normpath(path)) 
             self.seed_image_label.SetLabel(os.path.basename(self.seed_image_path.get())) 
+    
+    def create_livestream_broadcast(self):
+        """Create a YouTube livestream broadcast"""
+        from datetime import datetime, timezone, timedelta
+        
+        # Validate inputs
+        title = self.livestream_title.get().strip()
+        if not title:
+            messagebox.showwarning("Warning", "Please enter a title for the livestream!")
+            return
+        
+        description = self.livestream_description.get().strip()
+        if not description:
+            description = title  # Use title as description if not provided
+        
+        privacy = self.livestream_privacy.get()
+        delay_minutes = self.livestream_delay_minutes.get()
+        
+        # Check for client secrets
+        if not os.path.exists(self.client_secrets):
+            messagebox.showerror(
+                "Error",
+                f"YouTube client_secrets.json not found!\nPath: {self.client_secrets}"
+            )
+            return
+        
+        # Calculate scheduled start time
+        now_utc = datetime.now(timezone.utc)
+        scheduled_dt = now_utc + timedelta(minutes=delay_minutes)
+        scheduled_start_time = scheduled_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+        
+        try:
+            self.log(f"📡 Creating livestream broadcast: {title}")
+            self.log(f"   🕒 Scheduled Start: {scheduled_start_time}")
+            self.log(f"   🔒 Privacy: {privacy}")
+            
+            # Use YoutubeUploader to create broadcast
+            uploader = YoutubeUploader(self.client_secrets, self.credentials_file)
+            result = uploader.create_broadcast(
+                title=title,
+                description=description,
+                privacy_status=privacy,
+                scheduled_start_time=scheduled_start_time
+            )
+            
+            self.log(f"✅ Broadcast created successfully!")
+            self.log(f"   Broadcast ID: {result['broadcast_id']}")
+            self.log(f"   Stream URL: {result['stream_url']}")
+            self.log(f"   Stream Key: {result['stream_key']}")
+            
+            messagebox.showinfo(
+                "Success",
+                f"Livestream broadcast created!\n\n"
+                f"Broadcast ID: {result['broadcast_id']}\n"
+                f"Stream URL: {result['stream_url']}\n\n"
+                f"Use these details to configure your streaming software."
+            )
+            
+        except Exception as e:
+            self.log(f"❌ Failed to create broadcast: {e}")
+            messagebox.showerror("Error", f"Failed to create livestream:\n{str(e)}")
+    
     def toggle_pause(self): 
         self.is_paused = not self.is_paused 
         if self.is_paused:
