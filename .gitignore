@@ -1,0 +1,38 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+.env
+
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# IDE settings (optional but recommended)
+.vscode/
+.idea/
+
+#Temporary folder
+user_data/
+Downloads/
+ffmpeg/
+Assets/
+UserDataGoogleFlow/
+UserDataFlow/
+Extensions/
+nexa_extension/
+JSON/
+
+*.json
+client_secrets.json
+restorasi_token.json
+sound_relief_token.json
+youtube_channels.json
+
+*.json
