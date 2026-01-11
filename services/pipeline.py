@@ -2,6 +2,7 @@
 import os
 import json
 import time
+import threading
 from typing import Callable, Optional
 from core.models import GenerationConfig
 from core.logger import Logger
@@ -17,31 +18,30 @@ from thumbnail_generator import ThumbnailGenerator
 class Pipeline:
     """Main orchestration pipeline for video processing."""
     
-    def __init__(self, gen_config: GenerationConfig, prompt_folder: str,
-                 youtube_channels: dict, logger: Logger,
-                 pause_check: Callable[[], bool], stop_check: Callable[[], bool]):
+    def __init__(self, app_config, gen_config: GenerationConfig, logger: Logger,
+                 stop_event: Optional[threading.Event] = None, 
+                 pause_event: Optional[threading.Event] = None):
         """Initialize pipeline.
         
         Args:
+            app_config: Application configuration (from core.config)
             gen_config: Generation configuration
-            prompt_folder: Path to folder containing JSON prompts
-            youtube_channels: YouTube channel configuration
             logger: Logger instance
-            pause_check: Function to check if paused
-            stop_check: Function to check if stopped
+            stop_event: Threading event to signal stop (set when should stop)
+            pause_event: Threading event to signal pause (clear when paused, set when running)
         """
+        self.app_config = app_config
         self.gen_config = gen_config
-        self.prompt_folder = prompt_folder
-        self.youtube_channels = youtube_channels
         self.logger = logger
-        self.pause_check = pause_check
-        self.stop_check = stop_check
+        self.stop_event = stop_event or threading.Event()
+        self.pause_event = pause_event or threading.Event()
+        self.pause_event.set()  # Start unpaused
         
         # Initialize processors
         self.media_processor = MediaProcessor(
-            ffmpeg_path=config.ffmpeg_path,
-            assets_folder=config.assets_folder,
-            music_folder=config.music_folder,
+            ffmpeg_path=app_config.ffmpeg_path,
+            assets_folder=app_config.assets_folder,
+            music_folder=app_config.music_folder,
             logger=logger
         )
     
@@ -62,8 +62,8 @@ class Pipeline:
                 return
             
             # Process each JSON file
-            for json_file in sorted(os.listdir(self.prompt_folder)):
-                if self.stop_check():
+            for json_file in sorted(os.listdir(self.gen_config.prompt_folder)):
+                if self.stop_event.is_set():
                     self.logger.log("⏹ Automation stopped by user")
                     break
                 
@@ -87,11 +87,11 @@ class Pipeline:
             json_file: Name of JSON file
             runner: Runner instance to use
         """
-        save_dir = os.path.join(config.base_download_path, os.path.splitext(json_file)[0])
+        save_dir = os.path.join(self.app_config.download_path, os.path.splitext(json_file)[0])
         os.makedirs(save_dir, exist_ok=True)
         
         # Load prompts
-        with open(os.path.join(self.prompt_folder, json_file), 'r', encoding='utf-8') as f:
+        with open(os.path.join(self.gen_config.prompt_folder, json_file), 'r', encoding='utf-8') as f:
             data_json = json.load(f)
         
         total_scenes = len(data_json)
@@ -109,10 +109,10 @@ class Pipeline:
         # Generate scenes
         last_frame_path = None
         for i, item in enumerate(data_json, 1):
-            # Check pause/stop
-            while self.pause_check() and not self.stop_check():
-                time.sleep(1)
-            if self.stop_check():
+            # Check pause/stop - wait while paused, exit if stopped
+            while not self.pause_event.is_set() and not self.stop_event.is_set():
+                time.sleep(0.5)
+            if self.stop_event.is_set():
                 break
             
             # Skip if already processed
@@ -198,7 +198,7 @@ class Pipeline:
             mode: Mode (for channel selection)
         """
         try:
-            channel_config = self.youtube_channels.get(mode, {})
+            channel_config = self.gen_config.youtube_channels.get(mode, {})
             channel_name = channel_config.get("name", "Unknown Channel")
             credentials_path = channel_config.get("credentials", "")
             
@@ -210,7 +210,7 @@ class Pipeline:
             self.logger.log(f"📤 Uploading to YouTube Channel: {channel_name}")
             self.logger.log(f" Using credentials: {os.path.basename(credentials_path)}")
             
-            uploader = YoutubeUploader(config.client_secrets, credentials_path)
+            uploader = YoutubeUploader(self.app_config.client_secrets, credentials_path)
             description = f"Video generated using Glidly Pro AI Automator\nMode: {mode}\nChannel: {channel_name}"
             tags = "AI,automation,video"
             

@@ -15,7 +15,8 @@ class Config:
         self.pwd = os.getenv("GLID_PWD")
         
         # Paths
-        self.base_download_path = os.path.normpath(os.getenv("DOWNLOAD_PATH")) if os.getenv("DOWNLOAD_PATH") else None
+        self.download_path = os.path.normpath(os.getenv("DOWNLOAD_PATH")) if os.getenv("DOWNLOAD_PATH") else None
+        self.base_download_path = self.download_path  # Alias for backwards compatibility
         self.ffmpeg_path = os.path.normpath(os.getenv("FFMPEG_EXE")) if os.getenv("FFMPEG_EXE") else "ffmpeg"
         self.assets_folder = os.path.normpath(os.getenv("ASSETS_FOLDER", "./Assets"))
         self.music_folder = os.path.normpath(os.getenv("MUSIC_FOLDER", os.path.join(self.assets_folder, "music")))

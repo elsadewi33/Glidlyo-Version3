@@ -6,6 +6,7 @@ from typing import Optional, Dict, Any
 @dataclass
 class GenerationConfig:
     """Configuration for video generation."""
+    prompt_folder: str  # Folder containing JSON prompts
     mode: str  # Shorts, Sound Relief, Restorasi, Home Renovation
     generator: str  # Veo 3.1, Nexa Gen, Sora 2
     timeout: int  # seconds
@@ -14,10 +15,12 @@ class GenerationConfig:
     upload_youtube: bool
     loop_duration: int  # for Sound Relief mode
     gen_method: str  # Default, Flow, Google Flow
-    seed_image_path: str
-    video_gen_subcategory: str  # Default, Flow Video Generator, Google Flow
-    google_flow_username: str
-    google_flow_password: str
+    seed_image_path: Optional[str] = None
+    subcategory: str = "Default"  # Default, Nexa, Flow Video Generator, Google Flow
+    video_gen_subcategory: str = "Default"  # Alias for subcategory
+    google_flow_username: Optional[str] = None
+    google_flow_password: Optional[str] = None
+    youtube_channels: Optional[Dict[str, Dict[str, str]]] = None  # Channel mapping per mode
 
 
 @dataclass
