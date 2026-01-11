@@ -54,13 +54,26 @@ def create_runner(gen_config: GenerationConfig, logger: Logger) -> Optional[Base
             preferred_ext_id=config.flow_ext_id
         )
     
-    else:
-        # Default runner (Playwright Nexabot)
+    elif subcategory == "Nexa":
+        # Nexa runner (like Default but WITHOUT extensions for captcha solving)
         return DefaultRunner(
             config=gen_config,
             logger=logger,
             email=config.email,
             password=config.pwd,
             ffmpeg_path=config.ffmpeg_path,
-            timeout=gen_config.timeout
+            timeout=gen_config.timeout,
+            use_extensions=False  # No captcha solver extensions
+        )
+    
+    else:
+        # Default runner (Playwright Nexabot with extensions)
+        return DefaultRunner(
+            config=gen_config,
+            logger=logger,
+            email=config.email,
+            password=config.pwd,
+            ffmpeg_path=config.ffmpeg_path,
+            timeout=gen_config.timeout,
+            use_extensions=True  # Use captcha solver extensions
         )

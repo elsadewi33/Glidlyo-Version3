@@ -14,7 +14,7 @@ class DefaultRunner(BaseRunner):
     """Default runner using Playwright to interact with Nexabot."""
     
     def __init__(self, config: GenerationConfig, logger: Logger, 
-                 email: str, password: str, ffmpeg_path: str, timeout: int):
+                 email: str, password: str, ffmpeg_path: str, timeout: int, use_extensions: bool = True):
         """Initialize default runner.
         
         Args:
@@ -24,12 +24,14 @@ class DefaultRunner(BaseRunner):
             password: Login password
             ffmpeg_path: Path to ffmpeg executable
             timeout: Timeout in seconds
+            use_extensions: If True, load nexa_extension for captcha solving; if False, no extensions
         """
         super().__init__(config, logger)
         self.email = email
         self.password = password
         self.ffmpeg_path = ffmpeg_path
         self.timeout = timeout
+        self.use_extensions = use_extensions
         self.context = None
         self.page = None
         self.playwright = None
@@ -37,14 +39,31 @@ class DefaultRunner(BaseRunner):
     def initialize(self) -> bool:
         """Initialize browser and navigate to Video Generator."""
         try:
-            ext_path = os.path.abspath("nexa_extension")
             target_generator_url = "https://nexabot.pro/dashboard/videogenerator"
             
-            self.logger.log("🌐 Membuka Browser...")
+            self.logger.log("🌐 Opening Browser...")
             self.playwright = sync_playwright().start()
+            
+            # Build browser launch arguments
+            launch_args = {}
+            if self.use_extensions:
+                ext_path = os.path.abspath("nexa_extension")
+                if os.path.exists(ext_path):
+                    self.logger.log("🔌 Loading nexa_extension for captcha solving...")
+                    launch_args['args'] = [
+                        f"--disable-extensions-except={ext_path}", 
+                        f"--load-extension={ext_path}"
+                    ]
+                else:
+                    self.logger.log("⚠️ nexa_extension not found, continuing without extensions...")
+            else:
+                self.logger.log("ℹ️ Extensions disabled (Nexa mode)")
+            
             self.context = self.playwright.chromium.launch_persistent_context(
-                user_data_dir="user_data", headless=False, slow_mo=1000,
-                args=[f"--disable-extensions-except={ext_path}", f"--load-extension={ext_path}"],
+                user_data_dir="user_data", 
+                headless=False, 
+                slow_mo=1000,
+                **launch_args
             )
             self.context.set_default_timeout(self.timeout * 1000)
             self.page = self.context.new_page()
