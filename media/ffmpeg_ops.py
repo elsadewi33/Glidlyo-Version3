@@ -192,7 +192,7 @@ class MediaProcessor:
                 os.remove(looped_video)
         else:
             final_output = looped_video
-            self.logger.log(f"⚠️ No music files found in music_dir}")
+            self.logger.log(f"⚠️ No music files found in {music_dir}")
         
         # Cleanup
         if os.path.exists(list_path):
