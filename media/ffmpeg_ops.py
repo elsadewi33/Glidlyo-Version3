@@ -192,7 +192,7 @@ class MediaProcessor:
                 os.remove(looped_video)
         else:
             final_output = looped_video
-            self.logger.log(f"⚠️ No music files found in {music_dir}")
+            self.logger.log(f"⚠️ No music files found in music_dir}")
         
         # Cleanup
         if os.path.exists(list_path):
@@ -202,3 +202,62 @@ class MediaProcessor:
         
         self.logger.log(f"✅ Sound Relief video created: {os.path.basename(final_output)}")
         return final_output
+    
+    def merge_videos(self, folder_path: str, reencode: bool = False) -> Optional[str]:
+        """Merge videos with optional re-encoding for robustness.
+        
+        Args:
+            folder_path: Path to folder containing numbered video files
+            reencode: If True, re-encode videos for robust merging (slower but safer)
+        
+        Returns:
+            Path to merged video if successful, None otherwise
+        """
+        if reencode:
+            return self._merge_with_reencode(folder_path)
+        else:
+            return self.merge_process(folder_path)
+    
+    def _merge_with_reencode(self, folder_path: str) -> Optional[str]:
+        """Merge videos with re-encoding for maximum compatibility.
+        
+        Args:
+            folder_path: Path to folder containing numbered video files
+        
+        Returns:
+            Path to merged video if successful, None otherwise
+        """
+        self.logger.log("🔄 Merging videos with re-encoding...")
+        
+        video_files = sorted([f for f in os.listdir(folder_path)
+                              if f.endswith(".mp4") and f.split('.')[0].isdigit()],
+                             key=lambda x: int(x.split('.')[0]))
+        if not video_files:
+            return None
+        
+        list_path = os.path.join(folder_path, "ffmpeg_list.txt")
+        with open(list_path, "w") as f:
+            for v in video_files:
+                f.write(f"file '{v}'\n")
+        
+        output_path = os.path.join(folder_path, "FINAL_MERGED_VIDEO.mp4")
+        # Re-encode with concat demuxer and filter_complex for robustness
+        cmd = [
+            self.ffmpeg_path, '-f', 'concat', '-safe', '0', '-i', list_path,
+            '-c:v', 'libx264', '-preset', 'medium', '-crf', '23',
+            '-c:a', 'aac', '-b:a', '192k',
+            output_path, '-y'
+        ]
+        try:
+            subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+            self.logger.log(f"✅ Merge Success (re-encoded): {os.path.basename(output_path)}")
+            if os.path.exists(list_path):
+                os.remove(list_path)
+            return output_path
+        except Exception as e:
+            self.logger.log(f"❌ Merge Failed: {e}")
+            return None
+
+
+# Alias for backwards compatibility
+FFmpegOps = MediaProcessor
