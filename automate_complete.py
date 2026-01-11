@@ -90,8 +90,7 @@ class NexabotApp(wx.Frame):
         self.upscale_var = SimpleVar(False) 
         self.upload_youtube_var = SimpleVar(False) 
         self.loop_duration = SimpleVar(60) 
-        # [FLOW] Generation method + seed image + start account index 
-        self.gen_method = SimpleVar("Default")  # Default | Flow | Google Flow 
+        # [FLOW] Seed image + start account index 
         self.seed_image_path = SimpleVar("") 
         self.flow_account_start = SimpleVar(int(os.getenv("FLOW_ACCOUNT_START", "8"))) 
         # [GOOGLE FLOW] Credentials 
@@ -1000,7 +999,6 @@ class NexabotApp(wx.Frame):
                 total_scenes = len(data_json)
                 self.log("=" * 50)
                 self.log(f"📁 Processing (Flow): {json_file} (total scenes: {total_scenes})")
-                self.log(f"🧭 Generation Method: {self.gen_method.get()}")
                 if self.seed_image_path.get():
                     self.log(f"🖼️ Seed Image: {self.seed_image_path.get()}")
                 processed_scenes = self.check_processed_videos(save_dir, total_scenes)

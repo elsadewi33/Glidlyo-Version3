@@ -213,6 +213,3 @@ class YoutubeUploader:
             'stream_key': stream_key,
             'scheduled_start_time': scheduled_start_time
         }
-
-
-        return video_id
