@@ -36,3 +36,6 @@ sound_relief_token.json
 youtube_channels.json
 
 *.json
+
+# Backup files
+automate_complete_old.py
