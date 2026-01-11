@@ -109,6 +109,8 @@ class NexabotApp(wx.Frame):
         # Pause control 
         self.is_paused = False 
         self.is_running = False 
+        self.is_stopping = False  # New state to track stopping process
+        self.pipeline_thread = None  # Track the automation thread
         # UI refs 
         self.log_widget = None 
         self.sound_relief_box = None 
@@ -161,7 +163,7 @@ class NexabotApp(wx.Frame):
         # ---- Video Generator Subcategory Selection ---- 
         subcategory_box = wx.StaticBox(self.scrollable_panel, label="Video Generator Type") 
         subcategory_sizer = wx.StaticBoxSizer(subcategory_box, wx.HORIZONTAL) 
-        subcategories = ["Default", "Flow Video Generator", "Google Flow"] 
+        subcategories = ["Default", "Nexa", "Flow Video Generator", "Google Flow"] 
         lbl_subcat = wx.StaticText(subcategory_box, label="Select Type:") 
         self.subcategory_combo = wx.ComboBox(subcategory_box, choices=subcategories, style=wx.CB_READONLY, size=(200, -1)) 
         self.subcategory_combo.SetValue(self.video_gen_subcategory.get()) 
@@ -192,13 +194,6 @@ class NexabotApp(wx.Frame):
         self.upscale_cb.Bind(wx.EVT_CHECKBOX, lambda e: self.upscale_var.set(self.upscale_cb.GetValue())) 
         grid_cfg.Add(self.upscale_cb, 0, wx.ALIGN_LEFT) 
         grid_cfg.AddSpacer(0) 
-        # [FLOW] Generation Method (shown only for Default subcategory) 
-        self.gen_method_label = wx.StaticText(config_box, label="Generation Method:") 
-        grid_cfg.Add(self.gen_method_label, 0, wx.ALIGN_CENTER_VERTICAL) 
-        self.gen_method_combo = wx.ComboBox(config_box, choices=["Default", "Flow"], style=wx.CB_READONLY) 
-        self.gen_method_combo.SetValue(self.gen_method.get()) 
-        self.gen_method_combo.Bind(wx.EVT_COMBOBOX, lambda e: self.gen_method.set(self.gen_method_combo.GetValue())) 
-        grid_cfg.Add(self.gen_method_combo, 1, wx.EXPAND) 
         # [FLOW] Seed Image 
         btn_seed = wx.Button(config_box, label="Pilih Seed Image (Optional)") 
         btn_seed.Bind(wx.EVT_BUTTON, lambda e: self.select_seed_image()) 
@@ -282,25 +277,15 @@ class NexabotApp(wx.Frame):
     def update_subcategory_ui(self): 
         """Update UI visibility based on selected subcategory""" 
         subcategory = self.video_gen_subcategory.get() 
-        if subcategory == "Default": 
-            # Show Generation Method for Default 
-            self.gen_method_label.Show() 
-            self.gen_method_combo.Show() 
+        if subcategory in ["Default", "Nexa"]: 
+            # Default and Nexa use standard UI
             self.google_flow_sizer.Show(False) 
         elif subcategory == "Flow Video Generator": 
-            # Hide Generation Method for Flow Video Generator 
-            self.gen_method_label.Hide() 
-            self.gen_method_combo.Hide() 
+            # Flow Video Generator uses standard UI
             self.google_flow_sizer.Show(False) 
-            # Set generation method to Flow automatically 
-            self.gen_method.set("Flow") 
         elif subcategory == "Google Flow": 
-            # Hide Generation Method, Show Google Flow credentials 
-            self.gen_method_label.Hide() 
-            self.gen_method_combo.Hide() 
+            # Show Google Flow credentials 
             self.google_flow_sizer.Show(True) 
-            # Set generation method to Flow for Google Flow 
-            self.gen_method.set("Flow") 
         self.scrollable_panel.Layout() 
     def load_youtube_channels(self): 
         config_file = "youtube_channels.json" 
@@ -359,8 +344,31 @@ class NexabotApp(wx.Frame):
     def stop_automation(self): 
         self.is_paused = False 
         self.is_running = False 
-        self.log("⏹ STOP - Proses dihentikan oleh user") 
-    # ========================= 
+        self.is_stopping = True
+        self.start_btn.Disable()  # Keep START disabled during stopping
+        self.log("⏹ STOP - Stopping automation...")
+        # Start a background thread to wait for cleanup and then enable START
+        threading.Thread(target=self._wait_for_cleanup, daemon=True).start()
+    
+    def _wait_for_cleanup(self):
+        """Wait for pipeline thread to finish and then re-enable START button"""
+        if self.pipeline_thread and self.pipeline_thread.is_alive():
+            # Wait for thread to finish with timeout
+            self.pipeline_thread.join(timeout=30)
+        self.is_stopping = False
+        # Re-enable START button on UI thread
+        wx.CallAfter(self._cleanup_complete)
+    
+    def _cleanup_complete(self):
+        """Called when cleanup is complete to reset UI state"""
+        self.start_btn.Enable()
+        self.pause_btn.Disable()
+        self.pause_btn.SetLabel("⏸ PAUSE")
+        self.pause_btn.SetBackgroundColour(wx.Colour(255, 193, 7))
+        self.pause_btn.SetForegroundColour(wx.Colour(0, 0, 0))
+        self.stop_btn.Disable()
+        self.log("✅ Automation stopped - Ready to start again")
+    # =========================
     # LOGIC (dipertahankan + helper baru) 
     # ========================= 
     def check_processed_videos(self, folder_path, total_prompts): 
@@ -622,32 +630,53 @@ class NexabotApp(wx.Frame):
         self.start_btn.Disable()
         self.pause_btn.Enable()
         self.stop_btn.Enable()
+        
+        # Check if we should use extensions based on subcategory
+        use_extensions = self.video_gen_subcategory.get() == "Default"
         ext_path = os.path.abspath("nexa_extension")
         target_generator_url = "https://nexabot.pro/dashboard/videogenerator"
         context = None
+        
+        if use_extensions:
+            self.log("🔌 Extensions enabled (Default mode)")
+        else:
+            self.log("🚫 Extensions disabled (Nexa mode)")
+        
         try:
             with sync_playwright() as p:
                 self.log("🌐 Membuka Browser...")
-                context = p.chromium.launch_persistent_context(
-                    user_data_dir="user_data", headless=False, slow_mo=1000,
-                    args=[f"--disable-extensions-except={ext_path}", f"--load-extension={ext_path}"],
-                )
+                
+                # Conditionally add extension args
+                if use_extensions:
+                    context = p.chromium.launch_persistent_context(
+                        user_data_dir="user_data", headless=False, slow_mo=1000,
+                        args=[f"--disable-extensions-except={ext_path}", f"--load-extension={ext_path}"],
+                    )
+                else:
+                    context = p.chromium.launch_persistent_context(
+                        user_data_dir="user_data", headless=False, slow_mo=1000,
+                    )
+                
                 context.set_default_timeout(self.timeout.get() * 1000)
                 page = context.new_page()
-                try:
-                    if context.service_workers:
-                        actual_ext_id = context.service_workers[0].url.split("/")[2]
-                        page.goto(f"chrome-extension://{actual_ext_id}/popup.html")
-                        email_f = page.locator("#emailInput")
-                        if email_f.is_visible():
-                            email_f.fill(self.email or "")
-                            page.fill("#passwordInput", self.pwd or "")
-                            page.keyboard.press("Enter")
-                            time.sleep(2)
-                            if page.locator("#startBtn").is_visible():
-                                page.click("#startBtn")
-                except Exception:
-                    pass
+                
+                # Only try to configure extension if using extensions
+                if use_extensions:
+                    try:
+                        if context.service_workers:
+                            actual_ext_id = context.service_workers[0].url.split("/")[2]
+                            page.goto(f"chrome-extension://{actual_ext_id}/popup.html")
+                            email_f = page.locator("#emailInput")
+                            if email_f.is_visible():
+                                email_f.fill(self.email or "")
+                                page.fill("#passwordInput", self.pwd or "")
+                                page.keyboard.press("Enter")
+                                time.sleep(2)
+                                if page.locator("#startBtn").is_visible():
+                                    page.click("#startBtn")
+                    except Exception:
+                        pass
+                
                 self.log("➡️ Navigating directly to Video Generator...")
                 page.goto(target_generator_url, wait_until="domcontentloaded")
                 if not self.is_on_videogenerator(page):
@@ -843,12 +872,7 @@ class NexabotApp(wx.Frame):
                 except Exception:
                     pass
             self.is_running = False
-            self.start_btn.Enable()
-            self.pause_btn.Disable()
-            self.pause_btn.SetLabel("⏸ PAUSE")
-            self.pause_btn.SetBackgroundColour(wx.Colour(255, 193, 7))
-            self.pause_btn.SetForegroundColour(wx.Colour(0, 0, 0))
-            self.stop_btn.Disable()
+            wx.CallAfter(self._cleanup_complete)
 
     # =========================
     # FLOW AUTOMATION (no sidepanel injection)
@@ -1005,12 +1029,7 @@ class NexabotApp(wx.Frame):
             if runner:
                 runner.close()
             self.is_running = False
-            self.start_btn.Enable()
-            self.pause_btn.Disable()
-            self.pause_btn.SetLabel("⏸ PAUSE")
-            self.pause_btn.SetBackgroundColour(wx.Colour(255, 193, 7))
-            self.pause_btn.SetForegroundColour(wx.Colour(0, 0, 0))
-            self.stop_btn.Disable()
+            wx.CallAfter(self._cleanup_complete)
 
     # =========================
     # GOOGLE FLOW AUTOMATION
@@ -1197,12 +1216,7 @@ class NexabotApp(wx.Frame):
                 except Exception:
                     pass
             self.is_running = False
-            self.start_btn.Enable()
-            self.pause_btn.Disable()
-            self.pause_btn.SetLabel("⏸ PAUSE")
-            self.pause_btn.SetBackgroundColour(wx.Colour(255, 193, 7))
-            self.pause_btn.SetForegroundColour(wx.Colour(0, 0, 0))
-            self.stop_btn.Disable()
+            wx.CallAfter(self._cleanup_complete)
 
     def start_automation_thread(self): 
         # Validasi seperti biasa 
@@ -1270,9 +1284,8 @@ class NexabotApp(wx.Frame):
         self.log(f"⏱️ Timeout: {self.timeout.get()}s") 
         self.log(f"🔗 Auto Merge: {'Yes' if self.auto_merge_var.get() else 'No'}") 
         self.log(f"🔍 Upscale 4K: {'Yes' if self.upscale_var.get() else 'No'}") 
-        self.log(f"🧭 Subcategory: {self.video_gen_subcategory.get()}") 
-        self.log(f"🧭 Generation Method: {self.gen_method.get()}") 
-        if self.gen_method.get() == "Flow" and self.seed_image_path.get(): 
+        self.log(f"🧭 Video Generator Type: {self.video_gen_subcategory.get()}") 
+        if self.seed_image_path.get(): 
             self.log(f"🖼️ Seed Image: {self.seed_image_path.get()}") 
         if self.video_gen_subcategory.get() == "Google Flow": 
             self.log(f"🔐 Google Flow User: {self.google_flow_username.get()}") 
@@ -1283,11 +1296,15 @@ class NexabotApp(wx.Frame):
         # Jalankan thread sesuai metode 
         subcategory = self.video_gen_subcategory.get() 
         if subcategory == "Google Flow": 
-            threading.Thread(target=self.run_automator_logic_google_flow, daemon=True).start() 
-        elif self.gen_method.get() == "Flow" or subcategory == "Flow Video Generator": 
-            threading.Thread(target=self.run_automator_logic_flow, daemon=True).start() 
+            self.pipeline_thread = threading.Thread(target=self.run_automator_logic_google_flow, daemon=True)
+            self.pipeline_thread.start() 
+        elif subcategory == "Flow Video Generator": 
+            self.pipeline_thread = threading.Thread(target=self.run_automator_logic_flow, daemon=True)
+            self.pipeline_thread.start() 
         else: 
-            threading.Thread(target=self.run_automator_logic, daemon=True).start() 
+            # Default or Nexa
+            self.pipeline_thread = threading.Thread(target=self.run_automator_logic, daemon=True)
+            self.pipeline_thread.start() 
 
 # ========================= 
 # Entry point 
