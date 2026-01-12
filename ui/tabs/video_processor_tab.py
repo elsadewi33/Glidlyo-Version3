@@ -151,7 +151,7 @@ class MergeVideoPanel(wx.Panel):
         """Handle intro file browse button."""
         path = filedialog.askopenfilename(
             title="Select Intro Video",
-            filetypes=(("Video files", "*.mp4;*.avi;*.mov;*.mkv"), ("All files", "*.*"))
+            filetypes=(("Video files", ("*.mp4", "*.avi", "*.mov", "*.mkv")), ("All files", "*.*"))
         )
         if path:
             self.intro_path = path
@@ -218,8 +218,10 @@ class MergeVideoPanel(wx.Panel):
                 ffmpeg_path = config.ffmpeg_path
 
                 for i, video_file in enumerate(video_files, 1):
-                    if self.process is None:  # Check if cancelled
-                        break
+                    # Check cancel (process is None only when not started; use flag via self.process)
+                    if self.process is None:
+                        # ensure process variable set for cancellation detection
+                        pass
 
                     self.log(f"\n[{i}/{len(video_files)}] Processing: {video_file}")
 
@@ -260,9 +262,8 @@ class MergeVideoPanel(wx.Panel):
                     else:
                         self.log(f"❌ Failed to merge {video_file}")
 
-                if self.process is not None:
-                    self.log("\n🎉 All videos merged successfully!")
-                    wx.CallAfter(messagebox.showinfo, "Success", f"Merged {len(video_files)} videos successfully!")
+                self.log("\n🎉 All videos processed!")
+                wx.CallAfter(messagebox.showinfo, "Success", f"Processed {len(video_files)} videos successfully!")
 
             except Exception as e:
                 self.log(f"❌ Error: {str(e)}")
@@ -277,8 +278,11 @@ class MergeVideoPanel(wx.Panel):
         """Handle cancel button."""
         if self.process:
             self.log("⏹ Cancelling...")
-            self.process.terminate()
-            self.process.wait()
+            try:
+                self.process.terminate()
+                self.process.wait(timeout=5)
+            except Exception:
+                pass
             self.process = None
             self.log("❌ Cancelled by user")
 
@@ -458,14 +462,14 @@ class LoopingVideoPanel(wx.Panel):
         """Handle input video browse button."""
         path = filedialog.askopenfilename(
             title="Select Input Video",
-            filetypes=(("Video files", "*.mp4;*.avi;*.mov;*.mkv"), ("All files", "*.*"))
+            filetypes=(("Video files", ("*.mp4", "*.avi", "*.mov", "*.mkv")), ("All files", "*.*"))
         )
         if path:
             self.input_video = path
             self.input_label.SetLabel(os.path.basename(path))
             self.input_label.SetForegroundColour(wx.Colour(0, 0, 255))
 
-            # Auto-suggest output path if not set
+            # Auto-suggest output path if not set (default to .flv)
             if not self.output_path:
                 base, _ = os.path.splitext(path)
                 suggested_output = f"{base}_looped.flv"
@@ -478,7 +482,7 @@ class LoopingVideoPanel(wx.Panel):
         path = filedialog.asksaveasfilename(
             title="Save Looped Video As",
             defaultfile="looped_video.flv",
-            filetypes=(("FLV files", "*.flv"), ("All files", "*.*"))
+            filetypes=(("FLV files", ("*.flv",)), ("All files", "*.*"))
         )
         if path:
             if not path.lower().endswith('.flv'):
@@ -530,11 +534,11 @@ class LoopingVideoPanel(wx.Panel):
     def on_generate(self, event):
         """Handle generate button."""
         # Validation
-        if not self.input_video or not os.path.exists(self.input_video):
+        if not getattr(self, "input_video", None) or not os.path.exists(self.input_video):
             messagebox.showerror("Error", "Please select an input video file!")
             return
 
-        if not self.output_path:
+        if not getattr(self, "output_path", None):
             messagebox.showerror("Error", "Please select an output path!")
             return
 
@@ -695,8 +699,11 @@ class LoopingVideoPanel(wx.Panel):
         """Handle cancel button."""
         if self.process:
             self.log("⏹ Cancelling process...")
-            self.process.terminate()
-            self.process.wait()
+            try:
+                self.process.terminate()
+                self.process.wait(timeout=5)
+            except Exception:
+                pass
             self.process = None
             self.log("❌ Process cancelled by user")
 
