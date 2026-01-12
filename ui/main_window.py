@@ -54,12 +54,12 @@ class MainWindow(wx.Frame):
         self.pause_event = threading.Event()
         self.is_paused = False
         self.is_running = False
-        self.pipeline_thread = None  # Track pipeline thread for cleanup
+        self.pipeline_thread = None
         
         # UI refs
         self.log_widget = None
-        self. log_label = None
-        self. ctrl_panel = None
+        self.log_label = None
+        self.ctrl_panel = None
         
         # Build UI
         self.setup_ui()
@@ -75,15 +75,15 @@ class MainWindow(wx.Frame):
         
         # Title
         title = wx.StaticText(main_panel, label="GLIDLY AI AUTOMATOR")
-        title_font = wx.Font(16, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
+        title_font = wx.Font(16, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx. FONTWEIGHT_BOLD)
         title.SetFont(title_font)
-        main_sizer.Add(title, 0, wx. TOP | wx.BOTTOM | wx.ALIGN_CENTER_HORIZONTAL, 10)
+        main_sizer. Add(title, 0, wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_HORIZONTAL, 10)
         
         # Create app_state dictionary to share with tabs
         self.app_state = {
             'prompt_folder': self.prompt_folder,
             'mode': self.mode,
-            'generator': self. generator,
+            'generator': self.generator,
             'timeout': self.timeout,
             'auto_merge_var': self.auto_merge_var,
             'upscale_var': self.upscale_var,
@@ -115,7 +115,7 @@ class MainWindow(wx.Frame):
         self.notebook.AddPage(self.livestream_tab, "Livestream")
         
         # Bind main notebook tab change to show/hide control buttons
-        self.notebook. Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self._on_main_tab_changed)
+        self.notebook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self._on_main_tab_changed)
         
         main_sizer.Add(self. notebook, 1, wx. EXPAND | wx.ALL, 5)
         
@@ -141,22 +141,22 @@ class MainWindow(wx.Frame):
         
         self.start_btn = wx.Button(self.ctrl_panel, label="▶ START")
         self.start_btn.SetBackgroundColour(wx.Colour(40, 167, 69))
-        self.start_btn.SetForegroundColour(wx.Colour(255, 255, 255))
+        self.start_btn.SetForegroundColour(wx. Colour(255, 255, 255))
         self.start_btn.SetFont(wx.Font(10, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD))
         self.start_btn.Bind(wx.EVT_BUTTON, lambda e: self.start_automation_thread())
         ctrl_sizer. Add(self.start_btn, 1, wx. EXPAND | wx.RIGHT, 5)
         
-        self.pause_btn = wx. Button(self.ctrl_panel, label="⏸ PAUSE")
+        self.pause_btn = wx.Button(self.ctrl_panel, label="⏸ PAUSE")
         self.pause_btn.SetBackgroundColour(wx.Colour(255, 193, 7))
-        self.pause_btn.SetForegroundColour(wx. Colour(0, 0, 0))
-        self.pause_btn.SetFont(wx.Font(10, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD))
+        self.pause_btn.SetForegroundColour(wx.Colour(0, 0, 0))
+        self.pause_btn.SetFont(wx.Font(10, wx. FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD))
         self.pause_btn.Disable()
         self.pause_btn.Bind(wx.EVT_BUTTON, lambda e: self.toggle_pause())
         ctrl_sizer.Add(self.pause_btn, 1, wx. EXPAND | wx.RIGHT, 5)
         
         self.stop_btn = wx.Button(self.ctrl_panel, label="⏹ STOP")
         self.stop_btn.SetBackgroundColour(wx.Colour(220, 53, 69))
-        self.stop_btn.SetForegroundColour(wx. Colour(255, 255, 255))
+        self.stop_btn.SetForegroundColour(wx.Colour(255, 255, 255))
         self.stop_btn.SetFont(wx.Font(10, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD))
         self.stop_btn.Disable()
         self.stop_btn. Bind(wx.EVT_BUTTON, lambda e: self. stop_automation())
@@ -186,20 +186,20 @@ class MainWindow(wx.Frame):
         """Stop automation - waits for cleanup before re-enabling START."""
         self.is_paused = False
         self.is_running = False
-        self. stop_event.set()  # Signal stop to any running threads
+        self. stop_event.set()
         self.log("⏹ STOP - Stopping...  please wait for cleanup")
         
-        # Disable all buttons immediately (will be re-enabled after cleanup)
-        self.start_btn.Disable()
+        # Disable all buttons immediately
+        self.start_btn. Disable()
         self.pause_btn.Disable()
-        self.stop_btn. Disable()
+        self.stop_btn.Disable()
         
-        # Start a background thread to wait for pipeline cleanup (non-blocking UI)
+        # Start a background thread to wait for pipeline cleanup
         def wait_for_cleanup():
             if self.pipeline_thread and self. pipeline_thread.is_alive():
-                self.pipeline_thread. join(timeout=30)  # Wait max 30s
+                self.pipeline_thread. join(timeout=30)
             wx.CallAfter(self._reset_ui_state)
-            wx.CallAfter(self.log, "✅ Cleanup complete - ready to start again")
+            wx.CallAfter(self. log, "✅ Cleanup complete - ready to start again")
         
         threading.Thread(target=wait_for_cleanup, daemon=True).start()
     
@@ -213,7 +213,7 @@ class MainWindow(wx.Frame):
         self.stop_btn.Disable()
     
     def log(self, msg):
-        """Log a message to the activity log. 
+        """Log a message to the activity log.  
         
         Args:
             msg: Message to log
@@ -223,7 +223,6 @@ class MainWindow(wx.Frame):
         full_msg = f"[{timestamp}] {msg}\n"
         
         if self.log_widget:
-            # Use wx.CallAfter for thread-safe UI updates
             wx.CallAfter(self._append_log, full_msg)
         else:
             print(full_msg)
@@ -264,7 +263,7 @@ class MainWindow(wx.Frame):
             messagebox.showinfo("Info", "Automation already running!")
             return
         
-        # Additional validations... 
+        # Additional validations
         current_mode = self.mode.get()
         
         if current_mode == "Restorasi":
@@ -301,7 +300,7 @@ class MainWindow(wx.Frame):
         self.log(f"📂 Prompt Folder: {self.prompt_folder.get()}")
         self.log(f"🎯 Mode: {current_mode}")
         self.log(f"🎬 Generator: {self.generator. get()}")
-        self.log(f"⏱️ Timeout: {self.timeout. get()}s")
+        self.log(f"⏱️ Timeout: {self. timeout.get()}s")
         self.log(f"🧭 Subcategory: {self.video_gen_subcategory.get()}")
         if current_mode == "Sound Relief":
             self.log(f"🎵 Loop Duration: {self.loop_duration.get()} minutes")
@@ -309,11 +308,11 @@ class MainWindow(wx.Frame):
         
         # Reset events
         self.stop_event. clear()
-        self.pause_event.set()  # Not paused initially
+        self.pause_event.set()
         
         # Update UI state
         self.is_running = True
-        self. start_btn. Disable()
+        self. start_btn.Disable()
         self.pause_btn.Enable()
         self.stop_btn.Enable()
         
@@ -326,9 +325,9 @@ class MainWindow(wx.Frame):
             gen_method=self.gen_method.get(),
             seed_image_path=self.seed_image_path.get() if self.seed_image_path.get() else None,
             subcategory=self.video_gen_subcategory.get(),
-            video_gen_subcategory=self.video_gen_subcategory.get(),  # Ensure both fields set
-            google_flow_username=self.google_flow_username. get() if self.google_flow_username. get() else None,
-            google_flow_password=self.google_flow_password.get() if self.google_flow_password. get() else None,
+            video_gen_subcategory=self.video_gen_subcategory.get(),
+            google_flow_username=self.google_flow_username.get() if self.google_flow_username.get() else None,
+            google_flow_password=self. google_flow_password.get() if self.google_flow_password.get() else None,
             auto_merge=self.auto_merge_var. get(),
             upscale=self.upscale_var. get(),
             upload_youtube=self.upload_youtube_var. get(),
@@ -361,7 +360,7 @@ class MainWindow(wx.Frame):
     def _on_automation_complete(self):
         """Handle automation completion (called from main thread)."""
         self.is_running = False
-        self.start_btn.Enable()
+        self. start_btn.Enable()
         self.pause_btn.Disable()
         self.pause_btn.SetLabel("⏸ PAUSE")
         self.pause_btn.SetBackgroundColour(wx.Colour(255, 193, 7))
@@ -371,26 +370,34 @@ class MainWindow(wx.Frame):
     def _on_main_tab_changed(self, event):
         """Handle main tab change - hide control buttons and log only for Livestream tab."""
         # CRITICAL: Only handle events from the main notebook, not sub-notebooks
-        # Sub-notebooks inside tabs (e.g., YouTube/Facebook in Livestream) also fire this event
         if event.GetEventObject() != self.notebook:
             event.Skip()
             return
         
-        page_idx = event. GetSelection()
+        # Skip if this is not a real page change (initialization events)
+        old_selection = event.GetOldSelection()
+        new_selection = event.GetSelection()
+        
+        # -1 means no previous selection (app startup), skip to avoid layout issues
+        if old_selection == -1:
+            event.Skip()
+            return
         
         # Hide control buttons and main log only for Livestream tab (index 3)
         # Video Generator (0), Video Processor (1), Video Uploader (2) all need START/STOP
-        if page_idx == 3:  # Livestream tab
-            # Hide control buttons and main log (Livestream has its own controls and log)
-            if not self. is_running:  # Don't hide if automation is running
+        if new_selection == 3:
+            # Livestream tab - hide control buttons and main log
+            if not self.is_running:
                 self.ctrl_panel.Hide()
                 self.log_label.Hide()
                 self.log_widget.Hide()
         else:
-            # Show control buttons and main log for all other tabs
-            self. ctrl_panel.Show()
+            # Other tabs - show control buttons and main log
+            self.ctrl_panel.Show()
             self.log_label.Show()
-            self.log_widget. Show()
+            self.log_widget.Show()
         
-        self. Layout()
+        # Force layout update to prevent glitches
+        self.Layout()
+        self.Refresh()
         event.Skip()
