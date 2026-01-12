@@ -571,6 +571,47 @@ class YouTubeLivestreamPanel(wx.Panel):
         
         try:
             self.stream_process = subprocess.Popen(cmd, stdout=subprocess. PIPE, stderr=subprocess.PIPE)
+            
+            # Start thread to capture FFmpeg output for debugging
+            def log_ffmpeg_output():
+                """Read FFmpeg stderr and log important messages to UI."""
+                while self.stream_process and self.stream_process.poll() is None:
+                    try: 
+                        line = self.stream_process.stderr.readline()
+                        if not line:
+                            break
+                        
+                        decoded = line.decode('utf-8', errors='ignore').strip()
+                        if not decoded:
+                            continue
+                        
+                        # Filter:  only log important messages
+                        # Skip verbose progress updates (frame=, fps=, bitrate=, speed=)
+                        lower = decoded.lower()
+                        
+                        # Log errors, warnings, and connection info
+                        if any(keyword in lower for keyword in [
+                            'error', 'warning', 'failed', 'invalid', 'could not', 
+                            'connection', 'rtmp', 'stream', 'output #'
+                        ]):
+                            # Skip progress lines that contain those keywords
+                            if not decoded.startswith('frame='):
+                                self.log(f"[FFmpeg] {decoded}")
+                        
+                        # Also log initial stream configuration (first few lines)
+                        elif any(keyword in lower for keyword in ['input #', 'duration:', 'encoder']):
+                            self.log(f"[FFmpeg] {decoded}")
+                    
+                    except Exception:
+                        break
+                
+                # Log when FFmpeg exits
+                if self.stream_process: 
+                    returncode = self.stream_process. poll()
+                    if returncode is not None and returncode != 0:
+                        self.log(f"[FFmpeg] Process exited with code {returncode}")
+            
+            threading.Thread(target=log_ffmpeg_output, daemon=True).start()
             self.log("✅ Video stream started (seamless looping enabled)")
             self.log("⏳ Please wait 30-40 seconds for stream to stabilize")
             self.status_btn.SetLabel("Status: Streaming")
