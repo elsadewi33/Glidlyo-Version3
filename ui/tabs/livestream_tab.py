@@ -582,7 +582,16 @@ class YouTubeLivestreamPanel(wx.Panel):
         
         self.log("✅ Created loop configuration file")
         
-        # FFmpeg command with seamless looping
+        # --- FIXED FFMPEG CONFIGURATION ---
+        
+        # Calculate GOP (Group of Pictures) Size
+        # YouTube requires a Keyframe every 2 seconds.
+        # GOP = FPS * 2
+        gop_size = str(fps * 2)
+        
+        self.log(f"⚙️ FFmpeg Config: GOP={gop_size} (2s), Tune=zerolatency, Pix=yuv420p")
+
+        # FFmpeg command with seamless looping and FIXES
         cmd = [
             ffmpeg_path,
             '-re',
@@ -591,12 +600,20 @@ class YouTubeLivestreamPanel(wx.Panel):
             '-stream_loop', str(stream_loop_count),
             '-i', self.temp_loop_file,
             '-vf', f'scale=-2:{res_config["height"]},fps={fps}',
+            
+            # --- CRITICAL FIXES FOR YOUTUBE ---
             '-c:v', 'libx264',
-            '-preset', 'veryfast',
+            '-preset', 'ultrafast',   # Changed to ultrafast for low CPU/latency
+            '-tune', 'zerolatency',   # REQUIRED for status to go active fast
+            '-pix_fmt', 'yuv420p',    # REQUIRED for compatibility
+            '-g', gop_size,           # REQUIRED: Keyframe every 2 seconds
+            # ----------------------------------
+            
             '-maxrate', res_config['maxrate'],
             '-bufsize', res_config['bufsize'],
             '-c:a', 'aac',
             '-b:a', '128k',
+            '-ar', '44100',           # Standard audio sample rate
             '-f', 'flv',
             self.rtmp_url
         ]
@@ -644,10 +661,8 @@ class YouTubeLivestreamPanel(wx.Panel):
             
             threading.Thread(target=log_ffmpeg_output, daemon=True).start()
             
-            self.log("✅ Video stream started (seamless looping enabled)")
-            self.log("⏳ Please wait 30-40 seconds for stream to stabilize")
-            if not self.use_port443_check.GetValue():
-                self.log("💡 If connection fails, try enabling 'Use RTMPS' option")
+            self.log("✅ Video stream started (Standard compliant)")
+            self.log("⏳ Please wait 30 seconds before clicking 'Check Connection'")
             self.status_btn.SetLabel("Status: Streaming")
             self.status_btn.SetBackgroundColour(wx.Colour(255, 193, 7))
             self.stop_btn.Enable()
