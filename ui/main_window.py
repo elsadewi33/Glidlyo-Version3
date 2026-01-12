@@ -16,7 +16,7 @@ class MainWindow(wx.Frame):
     """Main application window with tabbed interface."""
     
     def __init__(self, parent=None, title="Glidly Pro - AI Automator (Tabbed UI)"):
-        """Initialize main window. 
+        """Initialize main window.  
         
         Args:
             parent: Parent window
@@ -45,7 +45,7 @@ class MainWindow(wx.Frame):
         self.youtube_channels = {
             "Shorts": {"name": "", "credentials": ""},
             "Sound Relief": {"name": "", "credentials":  ""},
-            "Restorasi": {"name": "", "credentials": ""},
+            "Restorasi": {"name": "", "credentials":  ""},
             "Home Renovation": {"name": "", "credentials":  ""}
         }
         
@@ -58,7 +58,7 @@ class MainWindow(wx.Frame):
         
         # UI refs
         self.log_widget = None
-        self.log_label = None
+        self. log_label = None
         self. ctrl_panel = None
         
         # Build UI
@@ -70,7 +70,7 @@ class MainWindow(wx.Frame):
     def setup_ui(self):
         """Setup the user interface with tabbed layout."""
         # Main panel
-        main_panel = wx.Panel(self)
+        main_panel = wx. Panel(self)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         
         # Title
@@ -103,7 +103,7 @@ class MainWindow(wx.Frame):
         self.notebook = wx.Notebook(main_panel)
         
         # Create tabs
-        self.video_gen_tab = VideoGeneratorTab(self.notebook, self.app_state)
+        self. video_gen_tab = VideoGeneratorTab(self.notebook, self.app_state)
         self.video_proc_tab = VideoProcessorTab(self.notebook, self.app_state)
         self.video_upload_tab = VideoUploaderTab(self.notebook, self.app_state)
         self.livestream_tab = LivestreamTab(self.notebook, self.app_state)
@@ -115,13 +115,13 @@ class MainWindow(wx.Frame):
         self.notebook.AddPage(self.livestream_tab, "Livestream")
         
         # Bind main notebook tab change to show/hide control buttons
-        self.notebook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self._on_main_tab_changed)
+        self.notebook. Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self._on_main_tab_changed)
         
         main_sizer.Add(self. notebook, 1, wx. EXPAND | wx.ALL, 5)
         
         # Activity Log
         self.log_label = wx.StaticText(main_panel, label="Video Generation Log:")
-        main_sizer.Add(self.log_label, 0, wx.TOP | wx.LEFT, 10)
+        main_sizer.Add(self. log_label, 0, wx.TOP | wx.LEFT, 10)
         
         self.log_widget = wx.TextCtrl(main_panel, style=wx.TE_MULTILINE | wx.TE_READONLY, size=(-1, 150))
         self.log_widget.SetBackgroundColour(wx. Colour(30, 30, 30))
@@ -140,23 +140,23 @@ class MainWindow(wx.Frame):
         ctrl_sizer = wx.BoxSizer(wx.HORIZONTAL)
         
         self.start_btn = wx.Button(self.ctrl_panel, label="▶ START")
-        self.start_btn.SetBackgroundColour(wx. Colour(40, 167, 69))
-        self.start_btn.SetForegroundColour(wx. Colour(255, 255, 255))
+        self.start_btn.SetBackgroundColour(wx.Colour(40, 167, 69))
+        self.start_btn.SetForegroundColour(wx.Colour(255, 255, 255))
         self.start_btn.SetFont(wx.Font(10, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD))
-        self.start_btn.Bind(wx.EVT_BUTTON, lambda e: self. start_automation_thread())
-        ctrl_sizer.Add(self.start_btn, 1, wx. EXPAND | wx.RIGHT, 5)
+        self.start_btn.Bind(wx.EVT_BUTTON, lambda e: self.start_automation_thread())
+        ctrl_sizer. Add(self.start_btn, 1, wx. EXPAND | wx.RIGHT, 5)
         
-        self.pause_btn = wx.Button(self.ctrl_panel, label="⏸ PAUSE")
+        self.pause_btn = wx. Button(self.ctrl_panel, label="⏸ PAUSE")
         self.pause_btn.SetBackgroundColour(wx.Colour(255, 193, 7))
-        self.pause_btn.SetForegroundColour(wx.Colour(0, 0, 0))
-        self.pause_btn.SetFont(wx.Font(10, wx. FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD))
+        self.pause_btn.SetForegroundColour(wx. Colour(0, 0, 0))
+        self.pause_btn.SetFont(wx.Font(10, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD))
         self.pause_btn.Disable()
         self.pause_btn.Bind(wx.EVT_BUTTON, lambda e: self.toggle_pause())
         ctrl_sizer.Add(self.pause_btn, 1, wx. EXPAND | wx.RIGHT, 5)
         
         self.stop_btn = wx.Button(self.ctrl_panel, label="⏹ STOP")
         self.stop_btn.SetBackgroundColour(wx.Colour(220, 53, 69))
-        self.stop_btn.SetForegroundColour(wx.Colour(255, 255, 255))
+        self.stop_btn.SetForegroundColour(wx. Colour(255, 255, 255))
         self.stop_btn.SetFont(wx.Font(10, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD))
         self.stop_btn.Disable()
         self.stop_btn. Bind(wx.EVT_BUTTON, lambda e: self. stop_automation())
@@ -301,7 +301,7 @@ class MainWindow(wx.Frame):
         self.log(f"📂 Prompt Folder: {self.prompt_folder.get()}")
         self.log(f"🎯 Mode: {current_mode}")
         self.log(f"🎬 Generator: {self.generator. get()}")
-        self.log(f"⏱️ Timeout: {self. timeout.get()}s")
+        self.log(f"⏱️ Timeout: {self.timeout. get()}s")
         self.log(f"🧭 Subcategory: {self.video_gen_subcategory.get()}")
         if current_mode == "Sound Relief":
             self.log(f"🎵 Loop Duration: {self.loop_duration.get()} minutes")
@@ -313,7 +313,7 @@ class MainWindow(wx.Frame):
         
         # Update UI state
         self.is_running = True
-        self. start_btn.Disable()
+        self. start_btn. Disable()
         self.pause_btn.Enable()
         self.stop_btn.Enable()
         
@@ -327,7 +327,7 @@ class MainWindow(wx.Frame):
             seed_image_path=self.seed_image_path.get() if self.seed_image_path.get() else None,
             subcategory=self.video_gen_subcategory.get(),
             video_gen_subcategory=self.video_gen_subcategory.get(),  # Ensure both fields set
-            google_flow_username=self.google_flow_username.get() if self.google_flow_username. get() else None,
+            google_flow_username=self.google_flow_username. get() if self.google_flow_username. get() else None,
             google_flow_password=self.google_flow_password.get() if self.google_flow_password. get() else None,
             auto_merge=self.auto_merge_var. get(),
             upscale=self.upscale_var. get(),
@@ -340,8 +340,8 @@ class MainWindow(wx.Frame):
         logger = Logger(log_callback=self.log)
         
         # Create pipeline
-        pipeline = Pipeline(config, gen_config, logger, 
-                           stop_event=self.stop_event, 
+        pipeline = Pipeline(config, gen_config, logger,
+                           stop_event=self.stop_event,
                            pause_event=self.pause_event)
         
         # Run in thread
@@ -370,21 +370,27 @@ class MainWindow(wx.Frame):
     
     def _on_main_tab_changed(self, event):
         """Handle main tab change - hide control buttons and log only for Livestream tab."""
-        page_idx = event.GetSelection()
+        # CRITICAL: Only handle events from the main notebook, not sub-notebooks
+        # Sub-notebooks inside tabs (e.g., YouTube/Facebook in Livestream) also fire this event
+        if event.GetEventObject() != self.notebook:
+            event.Skip()
+            return
+        
+        page_idx = event. GetSelection()
         
         # Hide control buttons and main log only for Livestream tab (index 3)
         # Video Generator (0), Video Processor (1), Video Uploader (2) all need START/STOP
         if page_idx == 3:  # Livestream tab
             # Hide control buttons and main log (Livestream has its own controls and log)
-            if not self.is_running:  # Don't hide if automation is running
-                self.ctrl_panel. Hide()
+            if not self. is_running:  # Don't hide if automation is running
+                self.ctrl_panel.Hide()
                 self.log_label.Hide()
                 self.log_widget.Hide()
         else:
             # Show control buttons and main log for all other tabs
-            self.ctrl_panel.Show()
+            self. ctrl_panel.Show()
             self.log_label.Show()
-            self.log_widget.Show()
+            self.log_widget. Show()
         
-        self.Layout()
+        self. Layout()
         event.Skip()
