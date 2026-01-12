@@ -279,7 +279,7 @@ class YouTubeLivestreamPanel(wx.Panel):
                                 "Google API libraries not installed.\nPlease install:\npip install google-api-python-client google-auth-oauthlib")
                     return
                 
-                SCOPES = ['https://www.googleapis.com/auth/youtube. force-ssl']
+                SCOPES = ['https://www.googleapis.com/auth/youtube.force-ssl']
                 
                 creds = None
                 token_path = self.config.get('paths', 'token_path', fallback='token_livestream.json')
