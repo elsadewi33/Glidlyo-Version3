@@ -18,12 +18,16 @@ class Config:
         self.download_path = os.path.normpath(os.getenv("DOWNLOAD_PATH")) if os.getenv("DOWNLOAD_PATH") else None
         self.base_download_path = self.download_path  # Alias for backwards compatibility
         self.ffmpeg_path = os.path.normpath(os.getenv("FFMPEG_EXE")) if os.getenv("FFMPEG_EXE") else "ffmpeg"
-        self.assets_folder = os.path.normpath(os.getenv("ASSETS_FOLDER", "./Assets"))
-        self.music_folder = os.path.normpath(os.getenv("MUSIC_FOLDER", os.path.join(self.assets_folder, "music")))
+        self.assets_folder = os.path.normpath(os. getenv("ASSETS_FOLDER", "./Assets"))
+        self.music_folder = os.path. normpath(os.getenv("MUSIC_FOLDER", os. path.join(self.assets_folder, "music")))
         
         # YouTube API
         self.client_secrets = os.getenv("YT_CLIENT_SECRETS", "client_secrets.json")
         self.credentials_file = os.getenv("YT_CREDENTIALS", "token.json")
+        
+        # Default Runner (Playwright with extensions)
+        self.nexa_extension_path = os. path.normpath(os.getenv("NEXA_EXTENSION_PATH", "./nexa_extension"))
+        self.user_data_dir = os.path.normpath(os.getenv("USER_DATA_DIR", "./user_data"))
         
         # Flow settings
         self.flow_extensions_root = os.getenv("FLOW_EXTENSIONS_ROOT", os.path.abspath("Extensions"))
