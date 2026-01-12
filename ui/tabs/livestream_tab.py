@@ -516,7 +516,7 @@ class YouTubeLivestreamPanel(wx.Panel):
         
         if not video_duration:
             self.log("⚠️ Could not detect video duration, using default loop settings")
-            video_duration = 8. 0
+            video_duration = 8.0
         else:
             self.log(f"📹 Video duration: {video_duration:. 2f} seconds")
         
