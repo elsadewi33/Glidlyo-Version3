@@ -12,7 +12,7 @@ class LivestreamTab(wx.Panel):
     """Livestream tab containing sub-tabs for different platforms."""
     
     def __init__(self, parent, app_state):
-        """Initialize the Livestream tab. 
+        """Initialize the Livestream tab.
         
         Args:
             parent: Parent window
@@ -32,7 +32,7 @@ class LivestreamTab(wx.Panel):
         
         # Add tabs to notebook
         self.notebook.AddPage(self.youtube_tab, "YouTube")
-        self.notebook.AddPage(self. facebook_tab, "Facebook")
+        self.notebook.AddPage(self.facebook_tab, "Facebook")
         self.notebook.AddPage(self.tiktok_tab, "TikTok")
         self.notebook.AddPage(self.instagram_tab, "Instagram")
         
@@ -75,7 +75,7 @@ class YouTubeLivestreamPanel(wx.Panel):
         title = wx.StaticText(self, label="YouTube Livestream")
         title_font = wx.Font(12, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
         title.SetFont(title_font)
-        main_sizer.Add(title, 0, wx. ALL, 10)
+        main_sizer.Add(title, 0, wx.ALL, 10)
         
         # Configuration section
         config_box = wx.StaticBox(self, label="Configuration")
@@ -85,16 +85,16 @@ class YouTubeLivestreamPanel(wx.Panel):
         
         # Client secret file
         grid.Add(wx.StaticText(config_box, label="Client Secret: "), 0, wx.ALIGN_CENTER_VERTICAL)
-        self.client_secret_label = wx.StaticText(config_box, label=os.path.basename(self.config. get('paths', 'client_secret_path', fallback='Not set')))
-        self.client_secret_label.SetForegroundColour(wx. Colour(0, 0, 255))
+        self.client_secret_label = wx.StaticText(config_box, label=os.path.basename(self.config.get('paths', 'client_secret_path', fallback='Not set')))
+        self.client_secret_label.SetForegroundColour(wx.Colour(0, 0, 255))
         grid.Add(self.client_secret_label, 1, wx.EXPAND)
         btn_client_secret = wx.Button(config_box, label="Browse...")
         btn_client_secret.Bind(wx.EVT_BUTTON, self.on_browse_client_secret)
         grid.Add(btn_client_secret, 0)
         
         # Token path
-        grid.Add(wx. StaticText(config_box, label="Token Path:"), 0, wx.ALIGN_CENTER_VERTICAL)
-        self.token_label = wx.StaticText(config_box, label=self.config.get('paths', 'token_path', fallback='token_livestream. json'))
+        grid.Add(wx.StaticText(config_box, label="Token Path:"), 0, wx.ALIGN_CENTER_VERTICAL)
+        self.token_label = wx.StaticText(config_box, label=self.config.get('paths', 'token_path', fallback='token_livestream.json'))
         self.token_label.SetForegroundColour(wx.Colour(0, 0, 255))
         grid.Add(self.token_label, 1, wx.EXPAND)
         grid.AddSpacer(0)
@@ -103,15 +103,15 @@ class YouTubeLivestreamPanel(wx.Panel):
         grid.Add(wx.StaticText(config_box, label="Video File:"), 0, wx.ALIGN_CENTER_VERTICAL)
         self.video_label = wx.StaticText(config_box, label=os.path.basename(self.config.get('paths', 'last_video_path', fallback='Not set')))
         self.video_label.SetForegroundColour(wx.Colour(0, 0, 255))
-        grid.Add(self. video_label, 1, wx.EXPAND)
+        grid.Add(self.video_label, 1, wx.EXPAND)
         btn_video = wx.Button(config_box, label="Browse...")
         btn_video.Bind(wx.EVT_BUTTON, self.on_browse_video)
         grid.Add(btn_video, 0)
         
         grid.AddGrowableCol(1, 1)
-        config_sizer.Add(grid, 0, wx.EXPAND | wx. ALL, 5)
+        config_sizer.Add(grid, 0, wx.EXPAND | wx.ALL, 5)
         
-        main_sizer.Add(config_sizer, 0, wx. EXPAND | wx.ALL, 5)
+        main_sizer.Add(config_sizer, 0, wx.EXPAND | wx.ALL, 5)
         
         # Broadcast metadata section
         metadata_box = wx.StaticBox(self, label="Broadcast Settings")
@@ -158,47 +158,48 @@ class YouTubeLivestreamPanel(wx.Panel):
         self.loop_duration_combo.SetValue("Forever")
         grid_meta.Add(self.loop_duration_combo, 1, wx.EXPAND)
         
-        # Use Port 443 (NEW)
-        grid_meta.Add(wx.StaticText(metadata_box, label="Use Port 443:"), 0, wx.ALIGN_CENTER_VERTICAL)
-        self.use_port443_check = wx.CheckBox(metadata_box, label="Enable (bypass firewall)")
+        # --- MODIFIED SECTION: Use RTMPS (Auto Convert) ---
+        grid_meta.Add(wx.StaticText(metadata_box, label="Use RTMPS:"), 0, wx.ALIGN_CENTER_VERTICAL)
+        self.use_port443_check = wx.CheckBox(metadata_box, label="Enable (Auto convert to RTMPS)")
         self.use_port443_check.SetValue(False)
         grid_meta.Add(self.use_port443_check, 0, wx.ALIGN_CENTER_VERTICAL)
+        # --------------------------------------------------
         
         grid_meta.AddGrowableCol(1, 1)
         metadata_sizer.Add(grid_meta, 0, wx.EXPAND | wx.ALL, 5)
         
-        main_sizer.Add(metadata_sizer, 0, wx. EXPAND | wx.ALL, 5)
+        main_sizer.Add(metadata_sizer, 0, wx.EXPAND | wx.ALL, 5)
         
         # Control buttons
         control_panel = wx.Panel(self)
-        control_sizer = wx. GridSizer(rows=4, cols=3, vgap=5, hgap=5)
+        control_sizer = wx.GridSizer(rows=4, cols=3, vgap=5, hgap=5)
         
         # Row 1: Auth, Create, Start Video
         self.auth_btn = wx.Button(control_panel, label="Authenticate")
         self.auth_btn.Bind(wx.EVT_BUTTON, self.on_authenticate)
-        control_sizer. Add(self.auth_btn, 0, wx. EXPAND)
+        control_sizer.Add(self.auth_btn, 0, wx.EXPAND)
         
-        self. create_btn = wx.Button(control_panel, label="Create Broadcast")
+        self.create_btn = wx.Button(control_panel, label="Create Broadcast")
         self.create_btn.Disable()
         self.create_btn.Bind(wx.EVT_BUTTON, self.on_create_broadcast)
         control_sizer.Add(self.create_btn, 0, wx.EXPAND)
         
         self.start_video_btn = wx.Button(control_panel, label="Start Video Stream")
         self.start_video_btn.Disable()
-        self.start_video_btn. Bind(wx.EVT_BUTTON, self.on_start_video)
+        self.start_video_btn.Bind(wx.EVT_BUTTON, self.on_start_video)
         control_sizer.Add(self.start_video_btn, 0, wx.EXPAND)
         
         # Row 2: Test Live, Check, Stop
         self.test_live_btn = wx.Button(control_panel, label="Test Live")
         self.test_live_btn.Disable()
         self.test_live_btn.SetBackgroundColour(wx.Colour(255, 193, 7))
-        self.test_live_btn.SetForegroundColour(wx. Colour(0, 0, 0))
-        self.test_live_btn. Bind(wx.EVT_BUTTON, self.on_test_live)
-        control_sizer.Add(self.test_live_btn, 0, wx. EXPAND)
+        self.test_live_btn.SetForegroundColour(wx.Colour(0, 0, 0))
+        self.test_live_btn.Bind(wx.EVT_BUTTON, self.on_test_live)
+        control_sizer.Add(self.test_live_btn, 0, wx.EXPAND)
         
         self.check_btn = wx.Button(control_panel, label="Check Connection")
         self.check_btn.Disable()
-        self.check_btn. Bind(wx.EVT_BUTTON, self.on_check_connection)
+        self.check_btn.Bind(wx.EVT_BUTTON, self.on_check_connection)
         control_sizer.Add(self.check_btn, 0, wx.EXPAND)
         
         self.stop_btn = wx.Button(control_panel, label="Stop Stream")
@@ -209,40 +210,40 @@ class YouTubeLivestreamPanel(wx.Panel):
         # Row 3: Go Live
         self.go_live_btn = wx.Button(control_panel, label="🔴 GO LIVE")
         self.go_live_btn.Disable()
-        self.go_live_btn.SetBackgroundColour(wx. Colour(220, 53, 69))
-        self.go_live_btn.SetForegroundColour(wx. Colour(255, 255, 255))
+        self.go_live_btn.SetBackgroundColour(wx.Colour(220, 53, 69))
+        self.go_live_btn.SetForegroundColour(wx.Colour(255, 255, 255))
         self.go_live_btn.SetFont(wx.Font(10, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD))
-        self.go_live_btn. Bind(wx.EVT_BUTTON, self.on_go_live)
-        control_sizer.Add(self.go_live_btn, 0, wx. EXPAND)
+        self.go_live_btn.Bind(wx.EVT_BUTTON, self.on_go_live)
+        control_sizer.Add(self.go_live_btn, 0, wx.EXPAND)
         control_sizer.AddSpacer(0)
         control_sizer.AddSpacer(0)
         
         # Row 4: Status button
         self.status_btn = wx.Button(control_panel, label="Status:  Not Authenticated")
         self.status_btn.Disable()
-        control_sizer.Add(self. status_btn, 0, wx.EXPAND)
+        control_sizer.Add(self.status_btn, 0, wx.EXPAND)
         control_sizer.AddSpacer(0)
         control_sizer.AddSpacer(0)
         
         control_panel.SetSizer(control_sizer)
-        main_sizer.Add(control_panel, 0, wx. EXPAND | wx.ALL, 5)
+        main_sizer.Add(control_panel, 0, wx.EXPAND | wx.ALL, 5)
         
         # Log area
         log_label = wx.StaticText(self, label="Livestream Activity Log:")
         main_sizer.Add(log_label, 0, wx.TOP | wx.LEFT, 10)
         
-        self.log_text = wx.TextCtrl(self, style=wx. TE_MULTILINE | wx. TE_READONLY)
+        self.log_text = wx.TextCtrl(self, style=wx.TE_MULTILINE | wx.TE_READONLY)
         self.log_text.SetBackgroundColour(wx.Colour(30, 30, 30))
-        self.log_text.SetForegroundColour(wx. Colour(0, 255, 0))
+        self.log_text.SetForegroundColour(wx.Colour(0, 255, 0))
         self.log_text.SetFont(wx.Font(9, wx.FONTFAMILY_TELETYPE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
-        main_sizer. Add(self.log_text, 1, wx.EXPAND | wx.ALL, 5)
+        main_sizer.Add(self.log_text, 1, wx.EXPAND | wx.ALL, 5)
         
         self.SetSizer(main_sizer)
     
     def load_config(self):
         """Load configuration from config file."""
-        if os.path.exists(self. config_file):
-            self.config. read(self.config_file)
+        if os.path.exists(self.config_file):
+            self.config.read(self.config_file)
         else:
             # Create default config
             self.config['paths'] = {
@@ -255,7 +256,7 @@ class YouTubeLivestreamPanel(wx.Panel):
     def save_config(self):
         """Save configuration to config file."""
         with open(self.config_file, 'w') as f:
-            self. config.write(f)
+            self.config.write(f)
         self.log("✅ Configuration saved")
     
     def log(self, message):
@@ -267,7 +268,7 @@ class YouTubeLivestreamPanel(wx.Panel):
         self.log_text.AppendText(message)
     
     def get_video_duration(self, video_path, ffmpeg_path):
-        """Get video duration in seconds using ffprobe. 
+        """Get video duration in seconds using ffprobe.
         
         Args:
             video_path: Path to video file
@@ -281,14 +282,14 @@ class YouTubeLivestreamPanel(wx.Panel):
         ffmpeg_name = os.path.basename(ffmpeg_path)
         
         # Replace ffmpeg with ffprobe in filename only
-        if 'ffmpeg' in ffmpeg_name. lower():
+        if 'ffmpeg' in ffmpeg_name.lower():
             ffprobe_name = ffmpeg_name.replace('ffmpeg', 'ffprobe').replace('FFMPEG', 'ffprobe')
         else:
-            ffprobe_name = 'ffprobe. exe' if os.name == 'nt' else 'ffprobe'
+            ffprobe_name = 'ffprobe.exe' if os.name == 'nt' else 'ffprobe'
         
         ffprobe_path = os.path.join(ffmpeg_dir, ffprobe_name)
         
-        if not os.path. exists(ffprobe_path):
+        if not os.path.exists(ffprobe_path):
             self.log(f"⚠️ ffprobe not found at {ffprobe_path}")
             return None
         
@@ -323,7 +324,7 @@ class YouTubeLivestreamPanel(wx.Panel):
         """Handle video file browse button."""
         path = filedialog.askopenfilename(
             title="Select Video File",
-            filetypes=(("Video files", "*.mp4;*.avi;*.mov;*. mkv"), ("All files", "*.*"))
+            filetypes=(("Video files", "*.mp4;*.avi;*.mov;*.mkv"), ("All files", "*.*"))
         )
         if path:
             self.config['paths']['last_video_path'] = path
@@ -332,7 +333,7 @@ class YouTubeLivestreamPanel(wx.Panel):
     
     def on_authenticate(self, event):
         """Handle authenticate button."""
-        client_secret = self.config. get('paths', 'client_secret_path', fallback='')
+        client_secret = self.config.get('paths', 'client_secret_path', fallback='')
         if not client_secret or not os.path.exists(client_secret):
             messagebox.showerror("Error", "Please select a valid client secret file first!")
             return
@@ -356,7 +357,7 @@ class YouTubeLivestreamPanel(wx.Panel):
                                 "Google API libraries not installed.\nPlease install:\npip install google-api-python-client google-auth-oauthlib")
                     return
                 
-                SCOPES = ['https://www.googleapis.com/auth/youtube. force-ssl']
+                SCOPES = ['https://www.googleapis.com/auth/youtube.force-ssl']
                 
                 creds = None
                 token_path = self.config.get('paths', 'token_path', fallback='token_livestream.json')
@@ -369,7 +370,7 @@ class YouTubeLivestreamPanel(wx.Panel):
                 # Refresh or get new credentials
                 if not creds or not creds.valid:
                     if creds and creds.expired and creds.refresh_token:
-                        creds. refresh(Request())
+                        creds.refresh(Request())
                         self.log("✅ Credentials refreshed")
                     else: 
                         flow = InstalledAppFlow.from_client_secrets_file(client_secret, SCOPES)
@@ -395,7 +396,7 @@ class YouTubeLivestreamPanel(wx.Panel):
         """Handle successful authentication (called from main thread)."""
         self.authenticated = True
         self.status_btn.SetLabel("Status:  Authenticated")
-        self.status_btn.SetBackgroundColour(wx. Colour(40, 167, 69))
+        self.status_btn.SetBackgroundColour(wx.Colour(40, 167, 69))
         self.create_btn.Enable()
         self.log("✅ Authentication successful")
     
@@ -420,7 +421,7 @@ class YouTubeLivestreamPanel(wx.Panel):
                     body={
                         "snippet": {
                             "title":  self.title_ctrl.GetValue(),
-                            "description": self. desc_ctrl.GetValue(),
+                            "description": self.desc_ctrl.GetValue(),
                             "scheduledStartTime":  scheduled_start
                         },
                         "status": {
@@ -436,8 +437,8 @@ class YouTubeLivestreamPanel(wx.Panel):
                 self.broadcast_id = broadcast_response['id']
                 self.log(f"✅ Broadcast created:  {self.broadcast_id}")
                 self.log(f"   Title: {self.title_ctrl.GetValue()}")
-                self.log(f"   Privacy: {self.privacy_combo. GetValue()}")
-                self. log(f"   Scheduled:  {scheduled_start}")
+                self.log(f"   Privacy: {self.privacy_combo.GetValue()}")
+                self.log(f"   Scheduled:  {scheduled_start}")
                 
                 # Create stream
                 stream_response = self.youtube.liveStreams().insert(
@@ -458,40 +459,40 @@ class YouTubeLivestreamPanel(wx.Panel):
                 stream_name = stream_response['cdn']['ingestionInfo']['streamName']
                 ingestion_address = stream_response['cdn']['ingestionInfo']['ingestionAddress']
                 
-                # Check if user wants to use port 443
-                use_port443 = self.use_port443_check.GetValue()
+                # --- MODIFIED SECTION: RTMPS Auto Convert ---
+                # Check if user wants to use RTMPS (Secure Stream)
+                use_rtmps = self.use_port443_check.GetValue()
                 
-                if use_port443:
-                    # Parse ingestion address and add : 443
-                    # ingestion_address format: rtmp://a.rtmp.youtube.com/live2
-                    if '://' in ingestion_address:
-                        protocol, rest = ingestion_address.split('://', 1)
-                        server = rest.split('/')[0]
-                        path = '/' + '/'.join(rest.split('/')[1:]) if '/' in rest else ''
-                        self.rtmp_url = f"{protocol}://{server}: 443{path}/{stream_name}"
-                        self.log("💡 Using port 443 for firewall bypass")
+                if use_rtmps:
+                    # Auto convert rtmp:// to rtmps://
+                    if ingestion_address.startswith("rtmp://"):
+                        secure_address = ingestion_address.replace("rtmp://", "rtmps://")
+                        self.rtmp_url = f"{secure_address}/{stream_name}"
+                        self.log("💡 Converted URL to RTMPS (Secure/Port 443)")
                     else:
                         self.rtmp_url = f"{ingestion_address}/{stream_name}"
+                        self.log("💡 URL kept as is (RTMPS active)")
                 else:
                     # Use standard RTMP (port 1935)
                     self.rtmp_url = f"{ingestion_address}/{stream_name}"
+                # --------------------------------------------
                 
                 self.log(f"✅ Stream created: {stream_id}")
-                self.log(f"📡 RTMP URL: {ingestion_address}/***")
+                self.log(f"📡 Stream URL: {self.rtmp_url.split('/')[0]}//.../***")
                 
                 # Bind broadcast to stream
-                self.youtube. liveBroadcasts().bind(
+                self.youtube.liveBroadcasts().bind(
                     part="id,contentDetails",
                     id=self.broadcast_id,
                     streamId=stream_id
                 ).execute()
                 
-                self. log("✅ Broadcast bound to stream")
+                self.log("✅ Broadcast bound to stream")
                 
                 wx.CallAfter(self._on_broadcast_created)
             
             except Exception as e:
-                self. log(f"❌ Broadcast creation failed: {str(e)}")
+                self.log(f"❌ Broadcast creation failed: {str(e)}")
                 wx.CallAfter(messagebox.showerror, "Error", f"Failed to create broadcast:\n{str(e)}")
         
         threading.Thread(target=create_broadcast, daemon=True).start()
@@ -507,7 +508,7 @@ class YouTubeLivestreamPanel(wx.Panel):
         """Handle start video button."""
         video_path = self.config.get('paths', 'last_video_path', fallback='')
         if not video_path or not os.path.exists(video_path):
-            messagebox. showerror("Error", "Please select a valid video file first!")
+            messagebox.showerror("Error", "Please select a valid video file first!")
             return
         
         if not self.rtmp_url:
@@ -579,7 +580,7 @@ class YouTubeLivestreamPanel(wx.Panel):
             video_path_escaped = video_path_abs.replace('\\', '/')
             f.write(f"file '{video_path_escaped}'\n")
         
-        self. log("✅ Created loop configuration file")
+        self.log("✅ Created loop configuration file")
         
         # FFmpeg command with seamless looping
         cmd = [
@@ -601,14 +602,14 @@ class YouTubeLivestreamPanel(wx.Panel):
         ]
         
         try:
-            self.stream_process = subprocess.Popen(cmd, stdout=subprocess. PIPE, stderr=subprocess.PIPE)
+            self.stream_process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             
             # Start thread to capture FFmpeg output for debugging
             def log_ffmpeg_output():
                 """Read FFmpeg stderr and log important messages to UI."""
                 while self.stream_process and self.stream_process.poll() is None:
                     try:
-                        line = self. stream_process.stderr.readline()
+                        line = self.stream_process.stderr.readline()
                         if not line: 
                             break
                         
@@ -637,7 +638,7 @@ class YouTubeLivestreamPanel(wx.Panel):
                 
                 # Log when FFmpeg exits
                 if self.stream_process: 
-                    returncode = self.stream_process. poll()
+                    returncode = self.stream_process.poll()
                     if returncode is not None and returncode != 0:
                         self.log(f"[FFmpeg] Process exited with code {returncode}")
             
@@ -646,7 +647,7 @@ class YouTubeLivestreamPanel(wx.Panel):
             self.log("✅ Video stream started (seamless looping enabled)")
             self.log("⏳ Please wait 30-40 seconds for stream to stabilize")
             if not self.use_port443_check.GetValue():
-                self.log("💡 If connection fails, try enabling 'Use Port 443' option")
+                self.log("💡 If connection fails, try enabling 'Use RTMPS' option")
             self.status_btn.SetLabel("Status: Streaming")
             self.status_btn.SetBackgroundColour(wx.Colour(255, 193, 7))
             self.stop_btn.Enable()
@@ -661,7 +662,7 @@ class YouTubeLivestreamPanel(wx.Panel):
     def on_test_live(self, event):
         """Handle test live button - transition broadcast to testing."""
         if not self.broadcast_id:
-            messagebox. showerror("Error", "No broadcast created!")
+            messagebox.showerror("Error", "No broadcast created!")
             return
         
         if not self.stream_process or self.stream_process.poll() is not None:
@@ -680,11 +681,11 @@ class YouTubeLivestreamPanel(wx.Panel):
                 
                 if not response['items']:
                     self.log("❌ Broadcast not found")
-                    wx.CallAfter(messagebox. showerror, "Error", "Broadcast not found!")
+                    wx.CallAfter(messagebox.showerror, "Error", "Broadcast not found!")
                     return
                 
                 broadcast = response['items'][0]
-                stream_status = broadcast['status']. get('streamStatus', 'inactive')
+                stream_status = broadcast['status'].get('streamStatus', 'inactive')
                 
                 self.log(f"📊 Stream ingestion status: {stream_status}")
                 
@@ -725,7 +726,7 @@ class YouTubeLivestreamPanel(wx.Panel):
         """Handle testing status (called from main thread)."""
         self.status_btn.SetLabel("Status: Testing")
         self.status_btn.SetBackgroundColour(wx.Colour(255, 193, 7))
-        self.test_live_btn. Disable()
+        self.test_live_btn.Disable()
         self.go_live_btn.Enable()
     
     def on_check_connection(self, event):
@@ -745,7 +746,7 @@ class YouTubeLivestreamPanel(wx.Panel):
                 
                 if response['items']:
                     status = response['items'][0]['status']['lifeCycleStatus']
-                    stream_status = response['items'][0]['status']. get('streamStatus', 'unknown')
+                    stream_status = response['items'][0]['status'].get('streamStatus', 'unknown')
                     self.log(f"📊 Broadcast lifecycle:  {status}")
                     self.log(f"📊 Stream status: {stream_status}")
                     
@@ -784,12 +785,12 @@ class YouTubeLivestreamPanel(wx.Panel):
                 
                 if not response['items']:
                     self.log("❌ Broadcast not found")
-                    wx.CallAfter(messagebox. showerror, "Error", "Broadcast not found!")
+                    wx.CallAfter(messagebox.showerror, "Error", "Broadcast not found!")
                     return
                 
                 broadcast = response['items'][0]
                 lifecycle_status = broadcast['status']['lifeCycleStatus']
-                stream_status = broadcast['status']. get('streamStatus', 'unknown')
+                stream_status = broadcast['status'].get('streamStatus', 'unknown')
                 
                 self.log(f"📊 Broadcast lifecycle: {lifecycle_status}")
                 self.log(f"📊 Stream status: {stream_status}")
@@ -813,7 +814,7 @@ class YouTubeLivestreamPanel(wx.Panel):
                 # Stream is ready, proceed with transition
                 self.log("✅ Stream is active, transitioning to live...")
                 
-                self.youtube. liveBroadcasts().transition(
+                self.youtube.liveBroadcasts().transition(
                     part="status",
                     id=self.broadcast_id,
                     broadcastStatus="live"
@@ -841,11 +842,11 @@ class YouTubeLivestreamPanel(wx.Panel):
             self.stream_process.terminate()
             self.stream_process.wait()
             self.stream_process = None
-            self. log("✅ Stream stopped")
-            self.status_btn. SetLabel("Status:  Stopped")
-            self.status_btn.SetBackgroundColour(wx.SystemSettings.GetColour(wx. SYS_COLOUR_BTNFACE))
-            self.stop_btn. Disable()
-            self.go_live_btn. Disable()
+            self.log("✅ Stream stopped")
+            self.status_btn.SetLabel("Status:  Stopped")
+            self.status_btn.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNFACE))
+            self.stop_btn.Disable()
+            self.go_live_btn.Disable()
         
         # Cleanup temporary loop file
         if self.temp_loop_file and os.path.exists(self.temp_loop_file):
@@ -875,17 +876,17 @@ class PlaceholderLivestreamPanel(wx.Panel):
         title = wx.StaticText(self, label=f"{platform_name} Livestream")
         title_font = wx.Font(12, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
         title.SetFont(title_font)
-        main_sizer.Add(title, 0, wx. ALL, 10)
+        main_sizer.Add(title, 0, wx.ALL, 10)
         
         # Coming soon message
         coming_soon = wx.StaticText(self, label="🚧 Coming Soon 🚧")
-        coming_soon_font = wx.Font(16, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx. FONTWEIGHT_BOLD)
+        coming_soon_font = wx.Font(16, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
         coming_soon.SetFont(coming_soon_font)
-        coming_soon. SetForegroundColour(wx.Colour(255, 165, 0))
-        main_sizer.Add(coming_soon, 0, wx. ALIGN_CENTER | wx.ALL, 20)
+        coming_soon.SetForegroundColour(wx.Colour(255, 165, 0))
+        main_sizer.Add(coming_soon, 0, wx.ALIGN_CENTER | wx.ALL, 20)
         
         info_text = wx.StaticText(self, label=f"{platform_name} livestreaming will be added in a future update.\nStay tuned!")
         info_text.SetForegroundColour(wx.Colour(128, 128, 128))
-        main_sizer.Add(info_text, 0, wx. ALIGN_CENTER | wx.ALL, 10)
+        main_sizer.Add(info_text, 0, wx.ALIGN_CENTER | wx.ALL, 10)
         
         self.SetSizer(main_sizer)
