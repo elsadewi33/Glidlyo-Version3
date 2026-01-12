@@ -16,11 +16,11 @@ class MainWindow(wx.Frame):
     """Main application window with tabbed interface."""
     
     def __init__(self, parent=None, title="Glidly Pro - AI Automator (Tabbed UI)"):
-        """Initialize main window.  
+        """Initialize main window.    
         
         Args:
             parent: Parent window
-            title:  Window title
+            title:   Window title
         """
         super().__init__(parent, title=title, size=(1000, 800))
         self.SetMinSize(wx.Size(900, 700))
@@ -44,9 +44,9 @@ class MainWindow(wx.Frame):
         # YouTube channel mapping
         self.youtube_channels = {
             "Shorts": {"name": "", "credentials": ""},
-            "Sound Relief": {"name": "", "credentials":  ""},
-            "Restorasi": {"name": "", "credentials":  ""},
-            "Home Renovation": {"name": "", "credentials":  ""}
+            "Sound Relief": {"name": "", "credentials":   ""},
+            "Restorasi": {"name": "", "credentials":   ""},
+            "Home Renovation": {"name": "", "credentials":   ""}
         }
         
         # Control state with threading. Event for better stop/pause handling
@@ -83,18 +83,18 @@ class MainWindow(wx.Frame):
         self.app_state = {
             'prompt_folder': self.prompt_folder,
             'mode': self.mode,
-            'generator': self.generator,
+            'generator': self. generator,
             'timeout': self.timeout,
             'auto_merge_var': self.auto_merge_var,
             'upscale_var': self.upscale_var,
             'upload_youtube_var': self.upload_youtube_var,
             'loop_duration': self.loop_duration,
-            'gen_method':  self.gen_method,
-            'seed_image_path': self.seed_image_path,
-            'flow_account_start':  self.flow_account_start,
+            'gen_method':   self.gen_method,
+            'seed_image_path':  self.seed_image_path,
+            'flow_account_start':   self.flow_account_start,
             'google_flow_username': self.google_flow_username,
             'google_flow_password': self.google_flow_password,
-            'video_gen_subcategory': self.video_gen_subcategory,
+            'video_gen_subcategory': self. video_gen_subcategory,
             'youtube_channels': self.youtube_channels,
             'log_callback': self.log,
         }
@@ -115,7 +115,7 @@ class MainWindow(wx.Frame):
         self.notebook.AddPage(self.livestream_tab, "Livestream")
         
         # Bind main notebook tab change to show/hide control buttons
-        self.notebook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self._on_main_tab_changed)
+        self.notebook. Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self._on_main_tab_changed)
         
         main_sizer.Add(self. notebook, 1, wx. EXPAND | wx.ALL, 5)
         
@@ -143,7 +143,7 @@ class MainWindow(wx.Frame):
         self.start_btn.SetBackgroundColour(wx.Colour(40, 167, 69))
         self.start_btn.SetForegroundColour(wx. Colour(255, 255, 255))
         self.start_btn.SetFont(wx.Font(10, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD))
-        self.start_btn.Bind(wx.EVT_BUTTON, lambda e: self.start_automation_thread())
+        self.start_btn.Bind(wx.EVT_BUTTON, lambda e: self. start_automation_thread())
         ctrl_sizer. Add(self.start_btn, 1, wx. EXPAND | wx.RIGHT, 5)
         
         self.pause_btn = wx.Button(self.ctrl_panel, label="⏸ PAUSE")
@@ -157,9 +157,9 @@ class MainWindow(wx.Frame):
         self.stop_btn = wx.Button(self.ctrl_panel, label="⏹ STOP")
         self.stop_btn.SetBackgroundColour(wx.Colour(220, 53, 69))
         self.stop_btn.SetForegroundColour(wx.Colour(255, 255, 255))
-        self.stop_btn.SetFont(wx.Font(10, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD))
+        self.stop_btn. SetFont(wx.Font(10, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx. FONTWEIGHT_BOLD))
         self.stop_btn.Disable()
-        self.stop_btn. Bind(wx.EVT_BUTTON, lambda e: self. stop_automation())
+        self.stop_btn.Bind(wx.EVT_BUTTON, lambda e: self.stop_automation())
         ctrl_sizer.Add(self.stop_btn, 1, wx.EXPAND)
         
         self.ctrl_panel.SetSizer(ctrl_sizer)
@@ -213,7 +213,7 @@ class MainWindow(wx.Frame):
         self.stop_btn.Disable()
     
     def log(self, msg):
-        """Log a message to the activity log.  
+        """Log a message to the activity log.    
         
         Args:
             msg: Message to log
@@ -245,7 +245,7 @@ class MainWindow(wx.Frame):
                     saved_channels = json.load(f)
                 self.youtube_channels. update(saved_channels)
                 self.log("✅ YouTube channel settings loaded")
-            except Exception as e: 
+            except Exception as e:  
                 self.log(f"⚠️ Could not load channel settings: {e}")
     
     def start_automation_thread(self):
@@ -281,7 +281,7 @@ class MainWindow(wx.Frame):
             if not os.path.exists(music_folder):
                 messagebox.showwarning(
                     "Warning",
-                    f"Music folder not found:  {music_folder}\nSound Relief requires MP3 files!"
+                    f"Music folder not found: {music_folder}\nSound Relief requires MP3 files!"
                 )
                 return
         
@@ -311,8 +311,8 @@ class MainWindow(wx.Frame):
         self.pause_event.set()
         
         # Update UI state
-        self.is_running = True
-        self. start_btn.Disable()
+        self. is_running = True
+        self. start_btn. Disable()
         self.pause_btn.Enable()
         self.stop_btn.Enable()
         
@@ -360,7 +360,7 @@ class MainWindow(wx.Frame):
     def _on_automation_complete(self):
         """Handle automation completion (called from main thread)."""
         self.is_running = False
-        self. start_btn.Enable()
+        self.start_btn.Enable()
         self.pause_btn.Disable()
         self.pause_btn.SetLabel("⏸ PAUSE")
         self.pause_btn.SetBackgroundColour(wx.Colour(255, 193, 7))
@@ -368,7 +368,7 @@ class MainWindow(wx.Frame):
         self.stop_btn.Disable()
     
     def _on_main_tab_changed(self, event):
-        """Handle main tab change - hide control buttons and log only for Livestream tab."""
+        """Handle main tab change - hide control buttons and log for Video Processor and Livestream tabs."""
         # CRITICAL: Only handle events from the main notebook, not sub-notebooks
         if event.GetEventObject() != self.notebook:
             event.Skip()
@@ -383,16 +383,16 @@ class MainWindow(wx.Frame):
             event.Skip()
             return
         
-        # Hide control buttons and main log only for Livestream tab (index 3)
-        # Video Generator (0), Video Processor (1), Video Uploader (2) all need START/STOP
-        if new_selection == 3:
-            # Livestream tab - hide control buttons and main log
+        # Hide control buttons and main log for Video Processor (1) and Livestream (3) tabs
+        # Video Generator (0) and Video Uploader (2) need START/STOP controls
+        if new_selection in [1, 3]:
+            # Video Processor or Livestream - hide main controls (they have their own)
             if not self.is_running:
                 self.ctrl_panel.Hide()
-                self.log_label.Hide()
+                self. log_label.Hide()
                 self.log_widget.Hide()
         else:
-            # Other tabs - show control buttons and main log
+            # Video Generator or Video Uploader - show main controls
             self.ctrl_panel.Show()
             self.log_label.Show()
             self.log_widget.Show()
