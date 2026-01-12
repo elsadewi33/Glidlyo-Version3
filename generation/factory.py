@@ -10,7 +10,7 @@ from core.config import config
 
 
 def create_runner(gen_config: GenerationConfig, logger: Logger) -> Optional[BaseRunner]:
-    """Create appropriate runner based on configuration.
+    """Create appropriate runner based on configuration. 
     
     Args:
         gen_config: Generation configuration
@@ -19,26 +19,26 @@ def create_runner(gen_config: GenerationConfig, logger: Logger) -> Optional[Base
     Returns:
         Appropriate runner instance or None if invalid configuration
     """
+    # Use video_gen_subcategory as single source of truth (no more gen_method confusion)
     subcategory = gen_config.video_gen_subcategory
-    gen_method = gen_config.gen_method
     
-    # Determine which runner to use
+    # Determine which runner to use based ONLY on subcategory
     if subcategory == "Google Flow":
         # Google Flow runner
         if not gen_config.google_flow_username or not gen_config.google_flow_password:
-            logger.error("Google Flow credentials not provided")
+            logger. error("Google Flow credentials not provided")
             return None
         
         return GoogleFlowRunner(
             config=gen_config,
             logger=logger,
-            username=gen_config.google_flow_username,
+            username=gen_config. google_flow_username,
             password=gen_config.google_flow_password,
             timeout=gen_config.timeout
         )
     
-    elif gen_method == "Flow" or subcategory == "Flow Video Generator":
-        # Flow runner
+    elif subcategory == "Flow Video Generator":
+        # Flow runner (no more checking gen_method == "Flow")
         return FlowRunner(
             config=gen_config,
             logger=logger,
@@ -54,7 +54,7 @@ def create_runner(gen_config: GenerationConfig, logger: Logger) -> Optional[Base
             preferred_ext_id=config.flow_ext_id
         )
     
-    elif subcategory == "Nexa":
+    elif subcategory == "Nexa": 
         # Nexa runner (like Default but WITHOUT extensions for captcha solving)
         return DefaultRunner(
             config=gen_config,

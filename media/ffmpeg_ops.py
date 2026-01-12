@@ -11,11 +11,11 @@ class MediaProcessor:
     """Handles all FFmpeg-based video operations."""
     
     def __init__(self, ffmpeg_path: str, assets_folder: str, music_folder: str, logger: Logger):
-        """Initialize media processor.
+        """Initialize media processor. 
         
         Args:
             ffmpeg_path: Path to ffmpeg executable
-            assets_folder: Path to assets folder
+            assets_folder:  Path to assets folder
             music_folder: Path to music folder
             logger: Logger instance for logging
         """
@@ -25,11 +25,11 @@ class MediaProcessor:
         self.logger = logger
     
     def upscale_video(self, input_path: str, output_path: str) -> Optional[str]:
-        """Upscale video to 4K resolution.
+        """Upscale video to 4K resolution. 
         
         Args:
             input_path: Input video path
-            output_path: Output video path
+            output_path:  Output video path
         
         Returns:
             Output path if successful, None otherwise
@@ -56,12 +56,12 @@ class MediaProcessor:
         Args:
             folder_path: Path to folder containing numbered video files
         
-        Returns:
+        Returns: 
             Path to merged video if successful, None otherwise
         """
         video_files = sorted([f for f in os.listdir(folder_path)
-                              if f.endswith(".mp4") and f.split('.')[0].isdigit()],
-                             key=lambda x: int(x.split('.')[0]))
+                              if f.endswith(". mp4") and f. split('. ')[0].isdigit()],
+                             key=lambda x: int(x.split('. ')[0]))
         if not video_files:
             return None
         
@@ -73,8 +73,8 @@ class MediaProcessor:
         output_path = os.path.join(folder_path, "FINAL_MERGED_VIDEO.mp4")
         cmd = [self.ffmpeg_path, '-f', 'concat', '-safe', '0', '-i', list_path,
                '-c', 'copy', output_path, '-y']
-        try:
-            subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        try: 
+            subprocess.run(cmd, check=True, stdout=subprocess. DEVNULL, stderr=subprocess. STDOUT)
             self.logger.log(f"✅ Merge Success: {os.path.basename(output_path)}")
             if os.path.exists(list_path):
                 os.remove(list_path)
@@ -92,9 +92,9 @@ class MediaProcessor:
         Returns:
             Path to merged video if successful, None otherwise
         """
-        intro_path = os.path.join(self.assets_folder, "intro.mp4")
+        intro_path = os.path.join(self.assets_folder, "intro. mp4")
         if not os.path.exists(intro_path):
-            self.logger.log("⚠️ intro.mp4 not found in Assets folder, skipping intro")
+            self.logger. log("⚠️ intro.mp4 not found in Assets folder, skipping intro")
             return self.merge_process(folder_path)
         
         video_files = sorted([f for f in os.listdir(folder_path)
@@ -103,22 +103,22 @@ class MediaProcessor:
         if not video_files:
             return None
         
-        list_path = os.path.join(folder_path, "ffmpeg_list_with_intro.txt")
+        list_path = os. path.join(folder_path, "ffmpeg_list_with_intro.txt")
         with open(list_path, "w") as f:
             f.write(f"file '{intro_path}'\n")
-            for v in video_files:
+            for v in video_files: 
                 f.write(f"file '{os.path.join(folder_path, v)}'\n")
         
-        output_path = os.path.join(folder_path, "FINAL_MERGED_VIDEO.mp4")
+        output_path = os. path.join(folder_path, "FINAL_MERGED_VIDEO.mp4")
         cmd = [self.ffmpeg_path, '-f', 'concat', '-safe', '0', '-i', list_path,
                '-c', 'copy', output_path, '-y']
-        try:
-            subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
-            self.logger.log(f"✅ Merged with intro: {os.path.basename(output_path)}")
+        try: 
+            subprocess.run(cmd, check=True, stdout=subprocess. DEVNULL, stderr=subprocess.STDOUT)
+            self.logger.log(f"✅ Merged with intro:  {os.path.basename(output_path)}")
             if os.path.exists(list_path):
                 os.remove(list_path)
             return output_path
-        except Exception as e:
+        except Exception as e: 
             self.logger.log(f"❌ Merge Failed: {e}")
             return None
     
@@ -134,7 +134,7 @@ class MediaProcessor:
         """
         self.logger.log(f"🎵 Creating Sound Relief video ({duration_minutes} minutes)...")
         video_files = sorted([f for f in os.listdir(folder_path)
-                              if f.endswith(".mp4") and f.split('.')[0].isdigit()],
+                              if f. endswith(".mp4") and f.split('.')[0].isdigit()],
                              key=lambda x: int(x.split('.')[0]))
         if not video_files:
             self.logger.log("❌ No video files found for Sound Relief")
@@ -155,7 +155,7 @@ class MediaProcessor:
         # Get base video duration
         probe_cmd = [self.ffmpeg_path, '-i', base_video, '-f', 'null', '-']
         result = subprocess.run(probe_cmd, capture_output=True, text=True)
-        duration_match = re.search(r'Duration:\s+(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?', result.stderr)
+        duration_match = re.search(r'Duration:\s+(\d{2}):(\d{2}):(\d{2})(? :\.(\d+))?', result.stderr)
         base_duration_sec = 10
         if duration_match:
             h, m, s = map(int, duration_match.groups()[:3])
@@ -167,29 +167,29 @@ class MediaProcessor:
         loop_count = max(1, int(target_duration_sec / base_duration_sec) + 1)
         
         # Create looped video
-        looped_video = os.path.join(folder_path, "looped_video.mp4")
+        looped_video = os.path. join(folder_path, "looped_video.mp4")
         subprocess.run([
             self.ffmpeg_path, '-stream_loop', str(loop_count - 1), '-i', base_video,
             '-filter_complex', f'concat=n={loop_count}:v=1:a=0,trim=duration={target_duration_sec}[v]',
             '-map', '[v]', '-c:v', 'libx264', '-preset', 'medium', '-crf', '23',
             looped_video, '-y'
-        ], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        ], stdout=subprocess. DEVNULL, stderr=subprocess. STDOUT)
         
         # Add music
         music_dir = self.music_folder
         music_files = [f for f in os.listdir(music_dir) if f.lower().endswith('.mp3')] if os.path.exists(music_dir) else []
         
-        if music_files:
-            music_path = os.path.join(music_dir, random.choice(music_files))
+        if music_files: 
+            music_path = os. path.join(music_dir, random.choice(music_files))
             final_output = os.path.join(folder_path, "FINAL_SOUND_RELIEF.mp4")
-            self.logger.log(f"🎶 Adding music from {music_dir}: {os.path.basename(music_path)}")
+            self.logger.log(f"🎶 Adding music from {music_dir}:  {os.path.basename(music_path)}")
             subprocess.run([
                 self.ffmpeg_path, '-i', looped_video, '-stream_loop', '-1', '-i', music_path,
                 '-shortest', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k',
                 final_output, '-y'
             ], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
             if os.path.exists(looped_video):
-                os.remove(looped_video)
+                os. remove(looped_video)
         else:
             final_output = looped_video
             self.logger.log(f"⚠️ No music files found in {music_dir}")
@@ -210,13 +210,13 @@ class MediaProcessor:
             folder_path: Path to folder containing numbered video files
             reencode: If True, re-encode videos for robust merging (slower but safer)
         
-        Returns:
+        Returns: 
             Path to merged video if successful, None otherwise
         """
         if reencode:
             return self._merge_with_reencode(folder_path)
         else:
-            return self.merge_process(folder_path)
+            return self. merge_process(folder_path)
     
     def _merge_with_reencode(self, folder_path: str) -> Optional[str]:
         """Merge videos with re-encoding for maximum compatibility.
@@ -230,7 +230,7 @@ class MediaProcessor:
         self.logger.log("🔄 Merging videos with re-encoding...")
         
         video_files = sorted([f for f in os.listdir(folder_path)
-                              if f.endswith(".mp4") and f.split('.')[0].isdigit()],
+                              if f. endswith(".mp4") and f.split('.')[0].isdigit()],
                              key=lambda x: int(x.split('.')[0]))
         if not video_files:
             return None
@@ -240,22 +240,22 @@ class MediaProcessor:
             for v in video_files:
                 f.write(f"file '{v}'\n")
         
-        output_path = os.path.join(folder_path, "FINAL_MERGED_VIDEO.mp4")
+        output_path = os.path.join(folder_path, "FINAL_MERGED_VIDEO. mp4")
         # Re-encode with concat demuxer and filter_complex for robustness
         cmd = [
             self.ffmpeg_path, '-f', 'concat', '-safe', '0', '-i', list_path,
-            '-c:v', 'libx264', '-preset', 'medium', '-crf', '23',
+            '-c: v', 'libx264', '-preset', 'medium', '-crf', '23',
             '-c:a', 'aac', '-b:a', '192k',
             output_path, '-y'
         ]
-        try:
-            subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        try: 
+            subprocess.run(cmd, check=True, stdout=subprocess. DEVNULL, stderr=subprocess.STDOUT)
             self.logger.log(f"✅ Merge Success (re-encoded): {os.path.basename(output_path)}")
             if os.path.exists(list_path):
                 os.remove(list_path)
             return output_path
         except Exception as e:
-            self.logger.log(f"❌ Merge Failed: {e}")
+            self. logger.log(f"❌ Merge Failed: {e}")
             return None
 
 
