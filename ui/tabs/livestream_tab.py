@@ -520,7 +520,7 @@ class YouTubeLivestreamPanel(wx.Panel):
             self.log("⚠️ Could not detect video duration, using default loop settings")
             video_duration = 8.0
         else:
-            self.log(f"📹 Video duration: {video_duration:. 2f} seconds")
+            self.log(f"📹 Video duration: {video_duration:.2f} seconds")
         
         # Calculate loop count based on duration
         loop_duration_map = {
